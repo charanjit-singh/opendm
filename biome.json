@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!dist", "!.wrangler", "!package-lock.json", "!docs/*.png", "!worker-configuration.d.ts"]
+    "includes": ["**", "!dist", "!.wrangler", "!package-lock.json", "!docs", "!worker-configuration.d.ts"]
   },
   "formatter": {
     "enabled": true,
