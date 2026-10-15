@@ -1,0 +1,43 @@
+.dev.vars.example
+  s_246380a1268afa::t_f1994a526c84cb 1-7
+.gitignore
+  s_246380a1268afa::t_30d95875ddd974 1-8
+LICENSE
+  s_246380a1268afa::t_f57a80c4d25531 1-668
+migrations/0001_init.sql
+  s_246380a1268afa::t_3d0d588e59ff8e 1-12
+package-lock.json
+  s_246380a1268afa::t_19f068d8a78e42 1-2850
+package.json
+  s_246380a1268afa::t_98818fd89b35df 1-54
+src/env.d.ts
+  s_246380a1268afa::t_352ca59083b9d4 1-4
+src/schema.ts
+  s_246380a1268afa::t_7cab17d0498eb4 1-31
+src/sql.d.ts
+  s_246380a1268afa::t_bed9157d8ac48a 1-5
+src/types.ts
+  s_246380a1268afa::t_22e837a8127ec5 1-18
+tsconfig.json
+  s_246380a1268afa::t_fc9d6fe856c61c 1-14
+vitest.config.ts
+  s_246380a1268afa::t_2ffa481dc547ac 1-15
+wrangler.jsonc
+  s_246380a1268afa::t_22dba8a8945aaa 1-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7dbf69518b801864380cd610bea5fe1e48f3d466",
+  "prompts": {},
+  "sessions": {
+    "s_246380a1268afa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e14d0ab-cab0-46cc-8f58-f062b7aba45c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Charanjit Singh <charanjitdotsingh@gmail.com>"
+    }
+  }
+}
