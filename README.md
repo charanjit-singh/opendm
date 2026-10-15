@@ -52,7 +52,7 @@ It runs on **your** Cloudflare account. No monthly bill, no per-contact pricing,
 
 ## ✨ Features
 
-| | |
+| Feature | What it does |
 | --- | --- |
 | 🔑 **Keyword triggers** | Case, accents, emoji and small typos ignored. Per-post rules supported. |
 | 💬 **Private + public reply** | A private reply to the comment, plus a rotating public "Sent you a DM!". |
@@ -68,7 +68,7 @@ It runs on **your** Cloudflare account. No monthly bill, no per-contact pricing,
 ## 🧭 How it works
 
 ```mermaid
-flowchart LR
+flowchart TD
   A["Comment: GUIDE"] --> B{"Keyword rule<br/>matches?"}
   B -- no --> Z["Ignored (logged)"]
   B -- yes --> C["Private reply:<br/>'Want the link?'<br/>+ public reply"]
