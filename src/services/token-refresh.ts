@@ -11,7 +11,7 @@ const DAY_MS = 86_400_000;
 /** Instagram user tokens last 60 days. Refresh once the token is a day old and under 20 days from expiry (or the expiry is unknown). */
 export async function refreshTokenIfNeeded(env: Env, force = false): Promise<string> {
   const account = await getAccount(env, "instagram");
-  if (!account || account.mode !== "instagram_login") return "no Instagram Login token to refresh";
+  if (account?.mode !== "instagram_login") return "no Instagram Login token to refresh";
   const expires = Number((await getSetting(env, SETTING.tokenExpires)) ?? 0);
   const refreshed = Number((await getSetting(env, SETTING.tokenRefreshed)) ?? 0);
   if (!force && refreshed && Date.now() - refreshed < DAY_MS) return "refreshed in the last day";

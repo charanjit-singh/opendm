@@ -4,7 +4,7 @@ import { getAppCredentials } from "../db/app-credentials";
 import { getSetting, isEnabled, SETTING } from "../db/settings";
 import type { ChannelStatus, Platform, Status } from "../types/api";
 import type { Env } from "../types/env";
-import { DEFAULT_FLOW, DEFAULT_PUBLIC_REPLIES } from "./flow";
+import { DEFAULT_FLOW, DEFAULT_PUBLIC_REPLIES, FACEBOOK_DEFAULTS } from "./flow";
 import { hourlyLimit, sentLastHour } from "./send-queue";
 
 const DAY_MS = 86_400_000;
@@ -49,6 +49,6 @@ export async function buildStatus(env: Env, origin: string): Promise<Status> {
     sentLastHour: await sentLastHour(env),
     hourlyLimit: await hourlyLimit(env),
     conversations: Object.fromEntries(steps.results.map((r) => [r.step, r.n])) as Status["conversations"],
-    defaults: { flow: DEFAULT_FLOW, publicReplies: DEFAULT_PUBLIC_REPLIES },
+    defaults: { flow: DEFAULT_FLOW, facebookFlow: FACEBOOK_DEFAULTS, publicReplies: DEFAULT_PUBLIC_REPLIES },
   };
 }

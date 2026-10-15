@@ -47,6 +47,7 @@ export function RulesTab({ status, refresh, notify }: TabProps & { status: Statu
           key={editing === "new" ? "new" : editing.id}
           rule={editing === "new" ? null : editing}
           defaults={status.defaults.flow}
+          facebookDefaults={status.defaults.facebookFlow}
           onCancel={() => setEditing(null)}
           onSaved={async () => {
             setEditing(null);

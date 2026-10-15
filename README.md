@@ -5,9 +5,9 @@
   <img src="docs/logo-light.svg" alt="OpenDM" height="72">
 </picture>
 
-### The open-source, self-hosted alternative to ManyChat-style Instagram DM automation
+### The open-source, self-hosted alternative to ManyChat-style Instagram and Facebook DM automation
 
-Someone comments a keyword. OpenDM replies, slides into their DMs, asks them to follow, and sends the link.
+Someone comments a keyword on Instagram or Facebook. OpenDM replies, slides into their DMs, asks them to follow, and sends the link.
 It runs on **your** Cloudflare account. No monthly bill, no per-contact pricing, no one else holding your data.
 
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
@@ -16,14 +16,11 @@ It runs on **your** Cloudflare account. No monthly bill, no per-contact pricing,
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/charanjit-singh/opendm)
 
-[**Set it up with Claude**](#-set-it-up-with-claude) · [How it works](#-how-it-works) · [Manual deploy](#-manual-deploy) · [FAQ](#-faq)
+[**Set it up with your AI agent**](#-set-it-up-with-your-ai-agent) · [How it works](#-how-it-works) · [Manual deploy](#-manual-deploy) · [Docs](#-docs) · [FAQ](#-faq)
 
 <br>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/dashboard-dark.png">
-  <img src="docs/dashboard.png" alt="The OpenDM dashboard" width="860">
-</picture>
+<img src="docs/dashboard.png" alt="The OpenDM dashboard" width="860">
 
 </div>
 
@@ -55,15 +52,18 @@ It runs on **your** Cloudflare account. No monthly bill, no per-contact pricing,
 | Feature | What it does |
 | --- | --- |
 | 🔑 **Keyword triggers** | Case, accents, emoji and small typos ignored. Per-post rules supported. |
-| 💬 **Private + public reply** | A private reply to the comment, plus a rotating public "Sent you a DM!". |
+| 📸 **Instagram and Facebook** | Instagram (Instagram Login, or through a Facebook Page) and Facebook Pages with Messenger, per rule or both. |
+| 💬 **Private + public reply** | A private reply to the comment, plus a public reply. Keyword DMs can start a flow too. |
+| 🔁 **Message cycling** | Every message can have several wordings, taken in turns or at random, so nothing looks copy-pasted. The log shows which one went out. |
+| 🧭 **Guided onboarding** | A Setup wizard with live checks for the Meta app, OAuth, tokens and webhooks; the same steps in the CLI and for agents. |
 | ➕ **Follow gate** | Asks them to follow, checks the follow status when Meta allows it, falls back to "tap done", and sends the link anyway after a timeout. |
 | 📬 **Email capture** | Optional or required step before the link. |
 | 🚦 **Rate limits and queue** | Rolling hourly cap, outbox in D1, retries with backoff, retried webhooks deduplicated. |
 | 🧪 **Dry-run tester** | Simulate a whole conversation, replies and timeouts included, without sending anything. |
 | 📜 **Event log** | Every comment seen, message sent, error and skip, with the reason. |
-| 🤖 **MCP and CLI control** | Create and change flows from Claude Code, or from a terminal. |
+| 🤖 **MCP and CLI control** | A remote MCP server at `/mcp` (29 tools) and an agent-friendly CLI. Fork it and let your agent change the code, or just connect it. |
 | 🔒 **Secure by default** | HMAC-verified webhooks, encrypted tokens, password-protected dashboard. |
-| 🛠️ **Tiny to run** | One Worker, one D1 database, one cron. The schema creates itself. |
+| 🛠️ **Tiny to run** | One Worker, one D1 database, one cron. The schema creates and upgrades itself. |
 
 ## 🧭 How it works
 
@@ -85,35 +85,48 @@ flowchart TD
 3. **The flow runs.** Follow gate, optional email, then the link. Everything is queued, rate limited and logged.
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/log-dark.png">
-    <img src="docs/log.png" alt="The event log" width="720">
-  </picture>
+  <img src="docs/log.png" alt="The event log" width="720">
 </p>
 
-## 🤖 Set it up with Claude
+## 🤖 Set it up with your AI agent
 
-Clone the repo, open it in [Claude Code](https://claude.com/claude-code), and paste a prompt. The repo carries its own instructions (`CLAUDE.md` and two skills in `.claude/skills/`), so Claude knows the steps.
+There are two ways to run OpenDM with an agent such as Claude Code, Codex, Cursor or Gemini CLI. Use either, or both.
+
+### 1. Code-first: fork it and let your agent own it
+
+Fork the repo, log in to Cloudflare, and open it in your agent. It deploys, configures, and can add features to the code.
 
 ```sh
-git clone https://github.com/charanjit-singh/opendm && cd opendm && claude
+git clone https://github.com/<you>/opendm && cd opendm
+npx wrangler login          # you approve this in the browser
+claude                      # or: codex, cursor, gemini ...
 ```
 
-**Deploy and connect Instagram**
+The repo teaches the agent: [`AGENTS.md`](AGENTS.md) (works everywhere), [`CLAUDE.md`](CLAUDE.md) and, for Claude Code, the commands
+`/deploy`, `/onboard`, `/connect-instagram`, `/add-rule`, `/add-custom-domain` and `/new-feature`, plus two skills.
 
 ```text
-Deploy this to my Cloudflare account and connect my Instagram.
+Deploy this to my Cloudflare account and connect my Instagram. Follow AGENTS.md. Ask me only for things that need me
+(logins, the Meta app ID and secret, approvals). Never print secrets.
 ```
-
-Claude installs dependencies, runs `wrangler deploy`, generates the secrets, walks you through the Meta app steps, connects the account and subscribes the webhooks.
-
-**Create a flow in plain English**
 
 ```text
-Whenever someone comments AUTOMATION, DM them, ask them to follow me, then send https://example.com/automation-guide
+Whenever someone comments AUTOMATION, DM them, ask them to follow me, then send https://example.com/automation-guide.
+Use three wordings for the opener and cycle them. Test it before you finish.
 ```
 
-Claude creates the rule with the `opendm_create_rule` tool, dry-runs it with a sample conversation, and shows you the transcript before anything goes live.
+### 2. MCP: connect any time to a deployed instance
+
+Your Worker serves an MCP endpoint at `/mcp` (Streamable HTTP, authenticated with your admin password). Connect Claude Desktop,
+Claude Code or any MCP client and manage everything by asking.
+
+```sh
+claude mcp add --transport http opendm https://<your-worker>/mcp --header "Authorization: Bearer <ADMIN_PASSWORD>"
+```
+
+29 tools: setup and checks, accounts (Instagram, Facebook Pages), rules and flows, message wordings, dry runs, logs,
+conversations, captured emails, queue, settings, health. A stdio server (`node cli/mcp.ts --url ... --token ...`) and an
+agent-friendly CLI (`--json`, exit codes, idempotent) are included. Details: [docs/ai-agents.md](docs/ai-agents.md).
 
 <details>
 <summary><b>More prompts</b></summary>
@@ -122,36 +135,29 @@ Claude creates the rule with the `opendm_create_rule` tool, dry-runs it with a s
 Add an optional email step to the AUTOMATION flow, and if they ignore the follow ask, send the link after 30 minutes.
 ```
 ```text
+Make the Facebook version of that flow too, and also trigger it when someone DMs me the keyword.
+```
+```text
 Pause all automation until Monday.
 ```
 ```text
 Show me what happened with the last 20 comments. Why did nobody get a DM?
 ```
 ```text
-Test what happens when someone comments "automaton" and says they followed me.
+Put this on dm.mydomain.com and tell me what to change in the Meta app.
 ```
 
 </details>
 
 <details>
-<summary><b>How Claude talks to OpenDM (MCP and CLI)</b></summary>
-
-The repo ships an [MCP](https://modelcontextprotocol.io) server (`cli/mcp.ts`) and a CLI (`cli/opendm.ts`). Both talk to your deployed Worker's admin API with your admin password as a bearer token.
+<summary><b>The CLI</b></summary>
 
 ```sh
-export OPENDM_URL=https://opendm.<your-subdomain>.workers.dev
-export OPENDM_TOKEN=<your ADMIN_PASSWORD>
-claude   # .mcp.json registers the server; the opendm_* tools appear
-```
-
-Tools: `opendm_status`, `opendm_list_rules`, `opendm_create_rule`, `opendm_update_rule`, `opendm_delete_rule`, `opendm_set_enabled`, `opendm_test_comment`, `opendm_get_log`, `opendm_connect_instagram`, `opendm_subscribe_webhooks`, `opendm_set_hourly_limit`.
-
-The same operations from a terminal (Node 22.18 or newer):
-
-```sh
-node cli/opendm.ts status
-node cli/opendm.ts rule add --keywords AUTOMATION --link https://example.com/guide --follow
+export OPENDM_URL=https://<your-worker>.workers.dev OPENDM_TOKEN=<ADMIN_PASSWORD>
+node cli/opendm.ts setup status --json        # onboarding checklist; exit code 2 = a person has to act
+node cli/opendm.ts rule add --keywords AUTOMATION --link https://example.com/guide --follow --channel both
 node cli/opendm.ts test "AUTOMATION please" --replies yes,done --following yes
+node cli/opendm.ts leads
 node cli/opendm.ts help
 ```
 
@@ -161,16 +167,15 @@ node cli/opendm.ts help
 
 ### One click
 
-1. Click **Deploy to Cloudflare** at the top. Cloudflare copies the repo to your GitHub, creates the D1 database and asks for four secrets:
+1. Click **Deploy to Cloudflare** at the top. Cloudflare copies the repo to your GitHub, creates the D1 database and asks for three secrets:
 
    | Secret | What to put |
    | --- | --- |
    | `ADMIN_PASSWORD` | A long password for the dashboard |
    | `SESSION_SECRET` | Random 32+ character string (`openssl rand -hex 32`) |
    | `VERIFY_TOKEN` | Any string you choose, pasted later into Meta's webhook form |
-   | `INSTAGRAM_APP_SECRET` | Your Instagram app secret (see below). A placeholder works until you have it |
 
-2. Open `https://<your-worker>.workers.dev/` and log in.
+2. Open `https://<your-worker>.workers.dev/` and log in. The **Setup** tab walks you through the Meta app, connecting, and the webhook ([docs/onboarding.md](docs/onboarding.md)).
 
 ### From the command line
 
@@ -181,11 +186,10 @@ npx wrangler deploy        # builds the dashboard, creates the D1 database
 npx wrangler secret put ADMIN_PASSWORD
 npx wrangler secret put SESSION_SECRET
 npx wrangler secret put VERIFY_TOKEN
-npx wrangler secret put INSTAGRAM_APP_SECRET
 ```
 
 <details>
-<summary><b>Create the Meta app (Instagram API with Instagram Login)</b></summary>
+<summary><b>Create the Meta app (Instagram and Facebook)</b></summary>
 
 You need an Instagram **Professional** account (Business or Creator). No Facebook Page is needed.
 
@@ -222,8 +226,7 @@ In development mode the app only serves accounts with a role on it, which is all
 | `ADMIN_PASSWORD` | secret | Dashboard login, and the bearer token for the CLI and MCP server |
 | `SESSION_SECRET` | secret | Cookie signing and token encryption |
 | `VERIFY_TOKEN` | secret | Meta webhook verification handshake |
-| `INSTAGRAM_APP_SECRET` | secret | Verifies `X-Hub-Signature-256` on every webhook; OAuth client secret |
-| `INSTAGRAM_APP_ID` | optional secret | Enables the "Connect with Instagram" button |
+| `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET`, `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET` | optional | The Meta app credentials. Easier to enter in the Setup tab (stored encrypted in D1); a webhook signed by either app is accepted |
 | `GRAPH_BASE`, `OAUTH_BASE` | optional | Point the Graph client at a mock (used by the tests) |
 
 Rules, messages, the on/off switch and the hourly cap live in D1 and are edited in the dashboard.
@@ -231,6 +234,16 @@ Rules, messages, the on/off switch and the hourly cap live in D1 and are edited 
 Local development: `cp .dev.vars.example .dev.vars`, then `npm run dev`. To receive real webhooks locally, expose the dev server with `cloudflared tunnel --url http://localhost:8787`.
 
 </details>
+
+## 📚 Docs
+
+| | |
+| --- | --- |
+| [Onboarding](docs/onboarding.md) | The Meta app, permissions, OAuth, webhooks, App Review, and troubleshooting common Meta errors |
+| [Facebook Pages and Messenger](docs/facebook.md) | Setup, differences from Instagram, Instagram through Facebook Login |
+| [Message cycling](docs/message-cycling.md) | Several wordings per message and how they rotate |
+| [Custom domain](docs/custom-domain.md) | Your own hostname, and what to change in Meta |
+| [AI agents](docs/ai-agents.md) | MCP, CLI, the onboarding playbook, safety rules and limits |
 
 ## ⚖️ How it compares
 
@@ -284,9 +297,9 @@ It is stored encrypted (AES-GCM, keyed from your `SESSION_SECRET`) in your D1 da
 </details>
 
 <details>
-<summary><b>Can I use it for Facebook or WhatsApp?</b></summary>
+<summary><b>Does it work for Facebook and WhatsApp?</b></summary>
 
-Not yet. OpenDM covers Instagram comments and DMs.
+Facebook Pages and Messenger: yes ([docs/facebook.md](docs/facebook.md)). WhatsApp: not yet.
 
 </details>
 
@@ -328,7 +341,7 @@ Design notes: `src/services/flow.ts` is a pure state machine shared by live DMs 
 ```sh
 npm run lint          # Biome
 npm run typecheck
-npm test              # ~150 tests in the real Workers runtime, Graph API mocked
+npm test              # ~250 tests in the real Workers runtime, Graph API mocked
 npm run test:e2e      # wrangler dev + mock Graph API, CLI and MCP over stdio
 npm run test:browser  # Playwright + Chrome: login, connect, create a rule, dry run, log (writes docs/*.png)
 npm run test:all

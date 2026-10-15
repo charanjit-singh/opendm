@@ -8,6 +8,7 @@ import {
   advance,
   type ConvState,
   DEFAULT_PUBLIC_REPLIES,
+  flowFor,
   type Outcome,
   type Picker,
   start,
@@ -71,7 +72,8 @@ export async function dryRun(env: Env, input: DryRunInput): Promise<DryRunResult
     }
   };
 
-  const opening = start(rule.flow, vars, pick);
+  const flow = flowFor(rule, platform);
+  const opening = start(flow, vars, pick);
   const publicReply = pickPublicReply(rule.public_replies.length ? rule.public_replies : DEFAULT_PUBLIC_REPLIES, pick);
   if (publicReply) {
     const note = publicReply.variant ? `public comment reply (${publicReply.variant})` : "public comment reply";
@@ -83,7 +85,7 @@ export async function dryRun(env: Env, input: DryRunInput): Promise<DryRunResult
   const clock = Date.now();
   for (const reply of input.replies.slice(0, MAX_REPLIES)) {
     transcript.push({ from: "user", text: reply });
-    const outcome = await advance(state, reply, rule.flow, vars, {
+    const outcome = await advance(state, reply, flow, vars, {
       checkFollow: async () => following,
       now: clock,
       pick,
@@ -93,7 +95,7 @@ export async function dryRun(env: Env, input: DryRunInput): Promise<DryRunResult
     state = outcome.state;
   }
   if (input.waitMinutes > 0) {
-    const outcome = timeoutFallback(state, rule.flow, vars, clock + input.waitMinutes * 60_000, pick);
+    const outcome = timeoutFallback(state, flow, vars, clock + input.waitMinutes * 60_000, pick);
     transcript.push({
       from: "system",
       text: outcome

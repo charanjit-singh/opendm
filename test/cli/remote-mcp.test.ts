@@ -14,7 +14,6 @@ const rpc = (method: string, params: unknown, id = 1, auth: string | null = `Bea
     body: JSON.stringify({ jsonrpc: "2.0", id, method, params }),
   });
 
-// biome-ignore lint/suspicious/noExplicitAny: JSON-RPC replies are loosely typed.
 const json = async (res: Response): Promise<any> => res.json();
 
 beforeEach(resetDb);

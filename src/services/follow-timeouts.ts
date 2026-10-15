@@ -5,7 +5,7 @@ import { keywordForComment, logEvent } from "../db/events";
 import { getRule } from "../db/rules";
 import type { Env } from "../types/env";
 import { buildVars } from "./conversation-context";
-import { timeoutFallback } from "./flow";
+import { flowFor, timeoutFallback } from "./flow";
 import { createPicker } from "./variants";
 import { sendOutcome } from "./webhook-processor";
 
@@ -23,7 +23,13 @@ export async function processFollowTimeouts(env: Env): Promise<number> {
     const keyword = (await keywordForComment(env, conversation.comment_id ?? "")) ?? rule.keywords[0];
     const vars = buildVars(rule, account, { username: conversation.username }, keyword);
     const picker = await createPicker(env, rule.id, rule.flow.rotation);
-    const outcome = timeoutFallback(toState(conversation), rule.flow, vars, Date.now(), picker.pick);
+    const outcome = timeoutFallback(
+      toState(conversation),
+      flowFor(rule, conversation.platform),
+      vars,
+      Date.now(),
+      picker.pick,
+    );
     if (!outcome) continue;
     const ctx = { username: conversation.username, keyword, rule_id: rule.id, ig_user: conversation.ig_user };
     await logEvent(env, { kind: "dm", status: "info", platform: conversation.platform, ...ctx, error: outcome.note });

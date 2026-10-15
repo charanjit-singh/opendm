@@ -72,7 +72,7 @@ export const DEFAULT_FLOW: Flow = {
 };
 
 /** Facebook cannot check follows, so the default ask is about liking the Page and trusts "done". */
-const FACEBOOK_DEFAULTS: Partial<Flow> = {
+export const FACEBOOK_DEFAULTS: Partial<Flow> = {
   followText:
     'One favor first: like our Page {account} on Facebook.\n\nThen reply "done" and I\'ll send it right over.',
   followRetryText: 'Please like {account} on Facebook, then reply "done".',
@@ -102,6 +102,10 @@ function cleanVariants(raw: unknown): Flow["variants"] {
   }
   return out;
 }
+
+/** The rule's flow as it applies on one platform (Facebook has its own default follow wording unless the user wrote one). */
+export const flowFor = (rule: { flow_raw: Record<string, unknown> }, platform: "instagram" | "facebook"): Flow =>
+  resolveFlow(rule.flow_raw, platform);
 
 /** Only known keys with the right types; empty text falls back to the default. */
 export function resolveFlow(raw: unknown, channel: "instagram" | "facebook" | "both" = "instagram"): Flow {
@@ -259,7 +263,7 @@ export async function startFromDm(flow: Flow, text: string, vars: Vars, deps: De
   return advance(opened, needsOpener(flow) ? "yes" : text, flow, vars, deps);
 }
 
-function deliver(flow: Flow, vars: Vars, base: ConvState, note: string, talk: Speaker, withThanks = false): Outcome {
+function deliver(flow: Flow, base: ConvState, note: string, talk: Speaker, withThanks = false): Outcome {
   const thanks = withThanks && flow.emailThanks ? [talk.say("emailThanks")] : [];
   return out({ step: "done" }, base, [...thanks, talk.say("deliverText")], note, talk);
 }
@@ -270,7 +274,7 @@ function afterFollow(flow: Flow, vars: Vars, s: ConvState, note: string, pick?: 
   if (flow.askEmail !== "off") {
     return out({ step: "awaiting_email", tries: 0 }, s, [talk.say("emailText")], `${note}; email asked`, talk);
   }
-  return deliver(flow, vars, s, `${note}; link sent`, talk);
+  return deliver(flow, s, `${note}; link sent`, talk);
 }
 
 function askFollow(flow: Flow, vars: Vars, s: ConvState, deps: Deps): Outcome {
@@ -304,7 +308,7 @@ export async function advance(state: ConvState, text: string, flow: Flow, vars: 
       const t = talk();
       if (tries >= flow.followMaxTries) {
         if (flow.followGiveUp === "send") {
-          return deliver(flow, vars, { ...state, tries }, "follow gate given up, link sent anyway", t);
+          return deliver(flow, { ...state, tries }, "follow gate given up, link sent anyway", t);
         }
         const stop = flow.followStopText ? [t.say("followStopText")] : [];
         return out({ step: "stopped", tries }, state, stop, "follow gate given up, stopped", t);
@@ -320,9 +324,9 @@ export async function advance(state: ConvState, text: string, flow: Flow, vars: 
     case "awaiting_email": {
       const t = talk();
       const email = extractEmail(text);
-      if (email) return deliver(flow, vars, { ...state, email }, "email captured, link sent", t, true);
+      if (email) return deliver(flow, { ...state, email }, "email captured, link sent", t, true);
       if (flow.askEmail === "optional" || (isNo(text) && flow.askEmail !== "required")) {
-        return deliver(flow, vars, state, "email skipped, link sent", t);
+        return deliver(flow, state, "email skipped, link sent", t);
       }
       const tries = state.tries + 1;
       if (tries >= 3) {

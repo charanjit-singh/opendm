@@ -11,6 +11,7 @@ import { FlowFields } from "./FlowFields";
 interface RuleEditorProps {
   rule: Rule | null;
   defaults: Flow;
+  facebookDefaults: Partial<Flow>;
   onCancel: () => void;
   onSaved: () => void;
 }
@@ -41,7 +42,18 @@ const toForm = (rule: Rule | null, defaults: Flow): RuleForm => ({
   flow: rule?.flow ?? defaults,
 });
 
-const toInput = (form: RuleForm): RuleInput => ({
+/** Only what the user changed: untouched messages stay on the defaults (which differ between Instagram and Facebook). */
+function flowOverrides(flow: Flow, defaults: Flow, facebookDefaults: Partial<Flow>): Record<string, unknown> {
+  const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+  return Object.fromEntries(
+    Object.entries(flow).filter(([key, value]) => {
+      const k = key as keyof Flow;
+      return !same(value, defaults[k]) && !same(value, facebookDefaults[k]);
+    }),
+  );
+}
+
+const toInput = (form: RuleForm, defaults: Flow, facebookDefaults: Partial<Flow>): RuleInput => ({
   name: form.name,
   keywords: form.keywords.split(","),
   link: form.link,
@@ -51,10 +63,10 @@ const toInput = (form: RuleForm): RuleInput => ({
   enabled: form.enabled,
   channel: form.channel,
   dm_trigger: form.dmTrigger,
-  flow: { ...form.flow },
+  flow: flowOverrides(form.flow, defaults, facebookDefaults),
 });
 
-export function RuleEditor({ rule, defaults, onCancel, onSaved }: RuleEditorProps) {
+export function RuleEditor({ rule, defaults, facebookDefaults, onCancel, onSaved }: RuleEditorProps) {
   const [form, setForm] = useState(() => toForm(rule, defaults));
   const [error, setError] = useState<string | null>(null);
   const set =
@@ -65,7 +77,7 @@ export function RuleEditor({ rule, defaults, onCancel, onSaved }: RuleEditorProp
   const save = async () => {
     setError(null);
     try {
-      const input = toInput(form);
+      const input = toInput(form, defaults, facebookDefaults);
       await (rule ? api.updateRule(rule.id, input) : api.createRule(input));
       onSaved();
     } catch (e) {

@@ -19,7 +19,10 @@ import { addRule, commentEvent, connect, dmEvent, mockGraph, postWebhook, resetD
 const vars = { name: "Sam", keyword: "GUIDE", link: "https://x.io", account: "shop" };
 const cycle = (): Picker => {
   const n: Record<string, number> = {};
-  return (key, count) => (n[key] = (n[key] ?? -1) + 1) % count;
+  return (key, count) => {
+    n[key] = (n[key] ?? -1) + 1;
+    return n[key] % count;
+  };
 };
 
 describe("flow variants", () => {

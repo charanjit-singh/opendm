@@ -2,9 +2,7 @@
 // Thin client for the Instagram API with Instagram Login (graph.instagram.com).
 // https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/
 
-import type { Account } from "../db/accounts";
 import { scrub } from "../lib/crypto";
-import type { Env } from "../types/env";
 
 export const GRAPH_VERSION = "v25.0";
 export const DEFAULT_GRAPH = "https://graph.instagram.com";

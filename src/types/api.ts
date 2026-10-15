@@ -80,7 +80,7 @@ export interface Status {
   hourlyLimit: number;
   /** Conversation counts by step. */
   conversations: Partial<Record<Step, number>>;
-  defaults: { flow: Flow; publicReplies: string[] };
+  defaults: { flow: Flow; facebookFlow: Partial<Flow>; publicReplies: string[] };
 }
 
 export interface TranscriptLine {

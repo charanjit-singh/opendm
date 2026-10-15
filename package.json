@@ -1,6 +1,6 @@
 {
   "name": "opendm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Open-source, self-hosted alternative to ManyChat-style Instagram comment-to-DM automation, on Cloudflare Workers.",
   "license": "AGPL-3.0-only",
   "author": "SS Enterprises (https://vibemastery.io)",
@@ -43,9 +43,6 @@
       },
       "VERIFY_TOKEN": {
         "description": "Any string you choose; paste the same value into Meta's webhook 'Verify token' field."
-      },
-      "INSTAGRAM_APP_SECRET": {
-        "description": "Instagram app secret from your Meta app (Instagram Login > API setup). Used to verify webhook signatures."
       }
     }
   },

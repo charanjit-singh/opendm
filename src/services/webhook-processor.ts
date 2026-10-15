@@ -13,7 +13,7 @@ import type { Env } from "../types/env";
 import type { IgComment, IgMessage, InboundComment, WebhookEntry, WebhookPayload } from "../types/instagram";
 import { clientFor } from "./account-client";
 import { buildVars } from "./conversation-context";
-import { advance, DEFAULT_PUBLIC_REPLIES, type Flow, type Outcome, start, startFromDm } from "./flow";
+import { advance, DEFAULT_PUBLIC_REPLIES, type Flow, flowFor, type Outcome, start, startFromDm } from "./flow";
 import { pickRule } from "./matching";
 import { dispatch, type LogContext } from "./send-queue";
 import { createPicker, labelOf, pickPublicReply } from "./variants";
@@ -110,7 +110,8 @@ async function onComment(
     return;
   }
   const picker = await createPicker(env, rule.id, rule.flow.rotation);
-  const flow = c.fromId ? rule.flow : linkOnly(rule.flow);
+  const ruleFlow = flowFor(rule, platform);
+  const flow = c.fromId ? ruleFlow : linkOnly(ruleFlow);
   const outcome = start(flow, buildVars(rule, account, { username: c.fromName }, match.keyword), picker.pick);
   const ctx: LogContext = {
     username: c.fromName,
@@ -177,7 +178,7 @@ async function onMessage(env: Env, platform: Platform, accountId: string | undef
   const lookup = profileLookup(env, account, sender);
   const vars = buildVars(rule, account, { name: (await lookup()).name, username: conversation.username }, keyword);
   const picker = await createPicker(env, rule.id, rule.flow.rotation);
-  const outcome = await advance(toState(conversation), text, rule.flow, vars, {
+  const outcome = await advance(toState(conversation), text, flowFor(rule, conversation.platform), vars, {
     checkFollow: async () => (await lookup()).following,
     now: Date.now(),
     pick: picker.pick,
@@ -216,7 +217,7 @@ async function onKeywordDm(env: Env, platform: Platform, sender: string, text: s
   const lookup = profileLookup(env, account, sender);
   const vars = buildVars(rule, account, { name: (await lookup()).name }, match.keyword);
   const picker = await createPicker(env, rule.id, rule.flow.rotation);
-  const outcome = await startFromDm(rule.flow, text, vars, {
+  const outcome = await startFromDm(flowFor(rule, platform), text, vars, {
     checkFollow: async () => (await lookup()).following,
     now: Date.now(),
     pick: picker.pick,

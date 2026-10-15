@@ -6,6 +6,23 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0]
+
+### Added
+- Facebook Pages and Messenger as a second channel: Page comment triggers, Messenger private replies, public comment replies,
+  keyword direct messages, and Instagram through Facebook Login (Page token). Per-rule channel (Instagram, Facebook, both).
+- Message cycling: several wordings for every message and for public replies, round-robin or random, with the wording used
+  recorded in the log.
+- Setup wizard in the dashboard with live checks; OAuth for Instagram Login and Facebook Login (with Page selection);
+  app credentials stored encrypted in D1; token exchange and refresh.
+- Remote MCP server on the Worker (`/mcp`, Streamable HTTP) with 29 tools; stdio fallback; agent-friendly CLI (`--json`,
+  exit codes, `opendm setup`).
+- `AGENTS.md`, `llms.txt`, Claude Code commands, and docs: onboarding, Facebook, message cycling, custom domain, AI agents.
+- Migration 0002 (applied automatically; upgrades existing databases).
+
+### Changed
+- `INSTAGRAM_APP_SECRET` is no longer a required Worker secret; enter the app credentials in the Setup tab.
+
 ## [0.1.0]
 
 ### Added

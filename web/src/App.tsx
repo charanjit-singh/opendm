@@ -44,6 +44,13 @@ export function App() {
   const [tab, setTab] = useState<TabId>("overview");
   const [flash, setFlash] = useState<Flash | null>(null);
 
+  /** Signing in (or loading an existing session): remember the status and, on a first run, open the setup wizard. */
+  const enter = (s: Status) => {
+    setStatus(s);
+    setSession("signed-in");
+    if (!s.channels.instagram.connected && !s.channels.facebook.connected) setTab("setup");
+  };
+
   const notify = (text: string, kind: Flash["kind"] = "ok") => setFlash({ text, kind });
   const refreshStatus = () =>
     api
@@ -56,10 +63,7 @@ export function App() {
     api
       .status()
       .then((s) => {
-        setStatus(s);
-        setSession("signed-in");
-        // First run: nothing connected yet, so start in the setup wizard.
-        if (!s.channels.instagram.connected && !s.channels.facebook.connected) setTab("setup");
+        enter(s);
         const message = takeHashMessage();
         if (message) setFlash(message);
       })
@@ -74,16 +78,7 @@ export function App() {
 
   if (session === "checking") return null;
   if (session === "signed-out") {
-    return (
-      <LoginForm
-        onLoggedIn={() =>
-          api.status().then((s) => {
-            setStatus(s);
-            setSession("signed-in");
-          })
-        }
-      />
-    );
+    return <LoginForm onLoggedIn={() => api.status().then(enter)} />;
   }
   if (!status) return null;
 
