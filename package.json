@@ -43,12 +43,21 @@
     }
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
     "@cloudflare/vitest-plugin": "^1.4.2",
     "@cloudflare/workers-types": "^5.20261006.1",
+    "@preact/preset-vite": "^2.10.6",
     "@types/node": "^26.6.5",
     "playwright-core": "^1.64.1",
     "typescript": "^5.9.3",
+    "vite": "^8.3.4",
     "vitest": "^4.1.0",
     "wrangler": "^4.151.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "hono": "^4.13.13",
+    "preact": "^11.0.1",
+    "zod": "^4.6.7"
   }
 }
