@@ -1,5 +1,14 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
-import type { DryRunResult, EventRow, Rule, Status } from "../../src/types/api";
+import type {
+  Channel,
+  DryRunResult,
+  EventRow,
+  Platform,
+  Rule,
+  SetupCheck,
+  SetupReport,
+  Status,
+} from "../../src/types/api";
 
 /** An API error carrying the HTTP status, so callers can react to 401. */
 export class ApiError extends Error {
@@ -34,9 +43,24 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
 }
 
 /** The rule fields the editor sends. */
-export type RuleInput = Omit<Rule, "id" | "flow" | "flow_raw"> & { flow: Record<string, unknown> };
+export type RuleInput = Omit<Rule, "id" | "flow" | "flow_raw" | "channel"> & {
+  channel: Channel;
+  flow: Record<string, unknown>;
+};
+
+export interface PageInfo {
+  id: string;
+  name: string;
+  instagram?: { id: string; username?: string };
+}
+
+export type ConnectFacebookResult =
+  | { connected: true; page: PageInfo }
+  | { connected: false; needsPage: true; pages: PageInfo[] };
 
 export interface DryRunRequest {
+  platform: Platform;
+  variant?: number;
   comment: string;
   name: string;
   replies: string;
@@ -51,8 +75,17 @@ export const api = {
   setEnabled: (enabled: boolean) => request<{ enabled: boolean }>("POST", "/api/enabled", { enabled }),
   setHourlyLimit: (hourlyLimit: number) => request<{ hourlyLimit: number }>("POST", "/api/settings", { hourlyLimit }),
   connect: (token: string) => request<{ username: string | null }>("POST", "/api/connect", { token }),
-  disconnect: () => request<{ connected: false }>("POST", "/api/disconnect"),
-  subscribe: () => request<{ subscribed: true }>("POST", "/api/subscribe"),
+  disconnect: (platform: Platform) => request<{ connected: false }>("POST", "/api/disconnect", { platform }),
+  subscribe: (platform: Platform) => request<{ subscribed: true }>("POST", "/api/subscribe", { platform }),
+  connectFacebook: (token: string, pageId?: string) =>
+    request<ConnectFacebookResult>("POST", "/api/facebook/connect", { token, pageId }),
+  selectFacebookPage: (pageId: string) => request<ConnectFacebookResult>("POST", "/api/facebook/select", { pageId }),
+  setup: () => request<SetupReport>("GET", "/api/setup"),
+  setupChecks: () => request<{ checks: SetupCheck[] }>("GET", "/api/setup/checks"),
+  saveCredentials: (platform: Platform, appId: string, appSecret?: string) =>
+    request<{ saved: true }>("POST", "/api/setup/credentials", { platform, appId, appSecret }),
+  exchangeToken: (platform: Platform, token: string) =>
+    request<{ message: string }>("POST", "/api/setup/exchange", { platform, token }),
   listRules: () => request<{ rules: Rule[] }>("GET", "/api/rules"),
   createRule: (rule: RuleInput) => request<{ rule: Rule }>("POST", "/api/rules", rule),
   updateRule: (id: number, rule: RuleInput) => request<{ rule: Rule }>("PUT", `/api/rules/${id}`, rule),

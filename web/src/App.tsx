@@ -8,13 +8,15 @@ import { LoginForm } from "./components/LoginForm";
 import { LogTab } from "./components/log/LogTab";
 import { OverviewTab } from "./components/overview/OverviewTab";
 import { RulesTab } from "./components/rules/RulesTab";
+import { SetupTab } from "./components/setup/SetupTab";
 import { DryRunTab } from "./components/test/DryRunTab";
 import { Notice } from "./components/ui/Notice";
 
 type Session = "checking" | "signed-out" | "signed-in";
-type TabId = "overview" | "rules" | "test" | "log";
+type TabId = "setup" | "overview" | "rules" | "test" | "log";
 
 const TABS: [TabId, string][] = [
+  ["setup", "Setup"],
   ["overview", "Overview"],
   ["rules", "Rules"],
   ["test", "Test"],
@@ -56,6 +58,8 @@ export function App() {
       .then((s) => {
         setStatus(s);
         setSession("signed-in");
+        // First run: nothing connected yet, so start in the setup wizard.
+        if (!s.channels.instagram.connected && !s.channels.facebook.connected) setTab("setup");
         const message = takeHashMessage();
         if (message) setFlash(message);
       })
@@ -112,7 +116,10 @@ export function App() {
             {flash.text}
           </Notice>
         )}
-        {tab === "overview" && <OverviewTab status={status} refresh={refreshStatus} notify={notify} />}
+        {tab === "setup" && <SetupTab status={status} refresh={refreshStatus} notify={notify} goTo={setTab} />}
+        {tab === "overview" && (
+          <OverviewTab status={status} refresh={refreshStatus} notify={notify} openSetup={() => setTab("setup")} />
+        )}
         {tab === "rules" && <RulesTab status={status} refresh={refreshStatus} notify={notify} />}
         {tab === "test" && <DryRunTab notify={notify} />}
         {tab === "log" && <LogTab notify={notify} />}

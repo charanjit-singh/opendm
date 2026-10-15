@@ -9,11 +9,14 @@ interface HeaderProps {
 }
 
 export function Header({ status, onToggle, onLogout }: HeaderProps) {
-  const connection = status.connected
-    ? {
-        text: `@${status.username ?? status.igId} connected`,
-        tone: status.tokenError ? ("warn" as const) : ("ok" as const),
-      }
+  const { instagram, facebook } = status.channels;
+  const names = [
+    instagram.connected && `@${instagram.name ?? instagram.id}`,
+    facebook.connected && `Page ${facebook.name ?? facebook.id}`,
+  ].filter(Boolean);
+  const hasError = !!(instagram.tokenError || facebook.tokenError);
+  const connection = names.length
+    ? { text: `${names.join(" + ")} connected`, tone: hasError ? ("warn" as const) : ("ok" as const) }
     : { text: "Not connected", tone: "error" as const };
   return (
     <header class="header">

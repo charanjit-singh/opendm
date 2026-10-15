@@ -37,17 +37,19 @@ export function LogTab({ notify }: { notify: (text: string, kind?: Flash["kind"]
           <thead>
             <tr>
               <th>Time</th>
+              <th>Platform</th>
               <th>Type</th>
               <th>Status</th>
               <th>Who</th>
               <th>Keyword</th>
+              <th>Wording</th>
               <th>Text / detail</th>
             </tr>
           </thead>
           <tbody id="log-body">
             {events.length === 0 && (
               <tr>
-                <td colSpan={6} class="hint">
+                <td colSpan={8} class="hint">
                   No events yet.
                 </td>
               </tr>
@@ -55,12 +57,14 @@ export function LogTab({ notify }: { notify: (text: string, kind?: Flash["kind"]
             {events.map((event) => (
               <tr key={event.id}>
                 <td title={new Date(event.ts).toISOString()}>{timeAgo(event.ts)}</td>
+                <td>{event.platform ?? ""}</td>
                 <td>{event.kind}</td>
                 <td>
                   <Pill tone={STATUS_TONE[event.status]}>{event.status}</Pill>
                 </td>
                 <td>{event.username ? `@${event.username}` : (event.ig_user ?? "")}</td>
                 <td>{event.keyword ?? ""}</td>
+                <td>{event.variant ?? ""}</td>
                 <td class="table__wrap">
                   {event.text}
                   {event.error && (

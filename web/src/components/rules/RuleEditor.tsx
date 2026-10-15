@@ -1,10 +1,10 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { useState } from "preact/hooks";
-import type { Flow, Rule } from "../../../../src/types/api";
+import type { Channel, Flow, Rule } from "../../../../src/types/api";
 import { api, type RuleInput } from "../../api";
 import { errorMessage } from "../../lib/format";
 import { Card } from "../ui/Card";
-import { Checkbox, TextAreaField, TextField } from "../ui/Field";
+import { Checkbox, SelectField, TextAreaField, TextField } from "../ui/Field";
 import { Notice } from "../ui/Notice";
 import { FlowFields } from "./FlowFields";
 
@@ -23,6 +23,8 @@ interface RuleForm {
   replies: string;
   fuzzy: boolean;
   enabled: boolean;
+  channel: Channel;
+  dmTrigger: boolean;
   flow: Flow;
 }
 
@@ -34,6 +36,8 @@ const toForm = (rule: Rule | null, defaults: Flow): RuleForm => ({
   replies: rule?.public_replies.join("\n") ?? "",
   fuzzy: rule?.fuzzy ?? true,
   enabled: rule?.enabled ?? true,
+  channel: rule?.channel ?? "instagram",
+  dmTrigger: rule?.dm_trigger ?? false,
   flow: rule?.flow ?? defaults,
 });
 
@@ -45,6 +49,8 @@ const toInput = (form: RuleForm): RuleInput => ({
   public_replies: form.replies.split("\n"),
   fuzzy: form.fuzzy,
   enabled: form.enabled,
+  channel: form.channel,
+  dm_trigger: form.dmTrigger,
   flow: { ...form.flow },
 });
 
@@ -98,9 +104,25 @@ export function RuleEditor({ rule, defaults, onCancel, onSaved }: RuleEditorProp
           onInput={set("mediaId")}
         />
       </div>
+      <div class="row">
+        <SelectField
+          id="f-channel"
+          label="Channel"
+          value={form.channel}
+          options={[
+            ["instagram", "Instagram"],
+            ["facebook", "Facebook Page"],
+            ["both", "Instagram and Facebook"],
+          ]}
+          onChange={(value) => set("channel")(value as Channel)}
+        />
+        <Checkbox id="f-dm-trigger" checked={form.dmTrigger} onChange={set("dmTrigger")}>
+          Also start when someone sends the keyword as a direct message
+        </Checkbox>
+      </div>
       <TextAreaField
         id="f-replies"
-        label="Public comment replies (one per line, rotated; leave empty for the defaults)"
+        label="Public comment replies (one per line, cycled; leave empty for the defaults)"
         placeholder="Sent you a DM!"
         value={form.replies}
         onInput={set("replies")}

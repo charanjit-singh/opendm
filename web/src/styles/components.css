@@ -258,3 +258,105 @@ summary {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
+
+/* Setup wizard */
+.step__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.step__mark {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  line-height: 26px;
+  text-align: center;
+}
+
+.step--ok .step__mark {
+  background: var(--color-success);
+  color: var(--color-brand-text);
+}
+
+.step--warn .step__mark {
+  background: var(--color-warning);
+  color: var(--color-brand-text);
+}
+
+.step__detail {
+  margin: 2px 0 0;
+}
+
+.step__help {
+  margin: var(--space-3) 0 0;
+  font-size: 14px;
+}
+
+.guide {
+  margin: var(--space-3) 0;
+  padding-left: 20px;
+  font-size: 14px;
+}
+
+.guide li {
+  margin-bottom: var(--space-2);
+}
+
+.checks {
+  margin: var(--space-3) 0 0;
+  padding-left: 0;
+  font-size: 14px;
+  list-style: none;
+}
+
+.checks__ok {
+  color: var(--color-success);
+}
+
+.checks__fail {
+  color: var(--color-danger);
+}
+
+.connect {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.connect__title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-md);
+}
+
+/* Message variants editor */
+.variants__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.variants__item .textarea {
+  flex: 1;
+}
+
+.variants__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.btn--small {
+  padding: 4px 10px;
+  font-size: var(--font-size-sm);
+}
+
+.pill-row {
+  display: flex;
+  gap: var(--space-1);
+}

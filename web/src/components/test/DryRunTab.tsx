@@ -1,6 +1,6 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { useState } from "preact/hooks";
-import type { DryRunResult } from "../../../../src/types/api";
+import type { DryRunResult, Platform } from "../../../../src/types/api";
 import type { Flash } from "../../App";
 import { api } from "../../api";
 import { errorMessage } from "../../lib/format";
@@ -15,11 +15,15 @@ export function DryRunTab({ notify }: { notify: (text: string, kind?: Flash["kin
   const [replies, setReplies] = useState("");
   const [following, setFollowing] = useState("unknown");
   const [wait, setWait] = useState("");
+  const [platform, setPlatform] = useState<Platform>("instagram");
+  const [variant, setVariant] = useState("");
   const [result, setResult] = useState<DryRunResult | null>(null);
 
   const run = () =>
     api
       .dryRun({
+        platform,
+        variant: Number(variant) || undefined,
         comment,
         name,
         replies,
@@ -43,6 +47,27 @@ export function DryRunTab({ notify }: { notify: (text: string, kind?: Flash["kin
         value={replies}
         onInput={setReplies}
       />
+      <div class="row">
+        <SelectField
+          id="t-platform"
+          label="Platform"
+          value={platform}
+          options={[
+            ["instagram", "Instagram"],
+            ["facebook", "Facebook"],
+          ]}
+          onChange={(value) => setPlatform(value as Platform)}
+        />
+        <TextField
+          id="t-variant"
+          type="number"
+          min={1}
+          label="Preview wording # (blank: cycle)"
+          placeholder="1"
+          value={variant}
+          onInput={setVariant}
+        />
+      </div>
       <div class="row">
         <SelectField
           id="t-following"

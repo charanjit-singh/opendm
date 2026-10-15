@@ -23,6 +23,7 @@ export function RulesTable({ rules, onEdit, onDelete }: RulesTableProps) {
           <tr>
             <th>Name</th>
             <th>Keywords</th>
+            <th>Channel</th>
             <th>Link</th>
             <th>On</th>
             <th />
@@ -45,6 +46,7 @@ export function RulesTable({ rules, onEdit, onDelete }: RulesTableProps) {
                   <code key={keyword}>{keyword}</code>
                 ))}
               </td>
+              <td>{rule.channel}</td>
               <td class="table__wrap">{rule.link}</td>
               <td>
                 <Pill tone={rule.enabled ? "ok" : undefined}>{rule.enabled ? "on" : "off"}</Pill>

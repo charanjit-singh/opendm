@@ -1,20 +1,31 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
+
+import type { MessageKey } from "../../../../src/services/flow";
 import type { Flow } from "../../../../src/types/api";
-import { Checkbox, SelectField, TextAreaField, TextField } from "../ui/Field";
+import { Checkbox, SelectField, TextField } from "../ui/Field";
+import { Variants } from "../ui/Variants";
 
 interface FlowFieldsProps {
   flow: Flow;
   onChange: (flow: Flow) => void;
 }
 
+/** Sets the wordings of one message. The first one doubles as the single text; one wording means no variants. */
+function withVariants(flow: Flow, key: MessageKey, values: string[]): Flow {
+  const variants = { ...flow.variants };
+  if (values.length > 1) variants[key] = values;
+  else delete variants[key];
+  return { ...flow, [key]: values[0] ?? "", variants };
+}
+
 /** The conversation settings of a rule: opener, follow gate, email capture, final message. */
 export function FlowFields({ flow, onChange }: FlowFieldsProps) {
-  const text = (key: keyof Flow, label: string) => (
-    <TextAreaField
+  const text = (key: MessageKey, label: string) => (
+    <Variants
       id={`fl-${key}`}
       label={label}
-      value={String(flow[key])}
-      onInput={(value) => onChange({ ...flow, [key]: value })}
+      values={flow.variants[key]?.length ? flow.variants[key] : [String(flow[key])]}
+      onChange={(values) => onChange(withVariants(flow, key, values))}
     />
   );
   const number = (key: "followMaxTries" | "followTimeoutMin", label: string, min: number, max: number) => (
@@ -85,6 +96,17 @@ export function FlowFields({ flow, onChange }: FlowFieldsProps) {
       </details>
 
       {text("deliverText", "Final message with the link")}
+
+      <SelectField
+        id="fl-rotation"
+        label="When a message has several wordings"
+        value={flow.rotation}
+        options={[
+          ["round_robin", "Take turns, in order"],
+          ["random", "Pick one at random"],
+        ]}
+        onChange={(rotation) => onChange({ ...flow, rotation: rotation as Flow["rotation"] })}
+      />
     </>
   );
 }

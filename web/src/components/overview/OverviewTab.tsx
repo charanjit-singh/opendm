@@ -6,11 +6,17 @@ import { LimitCard } from "./LimitCard";
 import { StatsGrid } from "./StatsGrid";
 import { WebhookCard } from "./WebhookCard";
 
-export function OverviewTab({ status, refresh, notify }: TabProps & { status: Status }) {
+export function OverviewTab({
+  status,
+  refresh,
+  notify,
+  openSetup,
+}: TabProps & { status: Status; openSetup: () => void }) {
   return (
     <section>
       <StatsGrid status={status} />
-      <AccountCard status={status} refresh={refresh} notify={notify} />
+      <AccountCard platform="instagram" status={status} refresh={refresh} notify={notify} openSetup={openSetup} />
+      <AccountCard platform="facebook" status={status} refresh={refresh} notify={notify} openSetup={openSetup} />
       <WebhookCard webhookUrl={status.webhookUrl} />
       <LimitCard status={status} refresh={refresh} notify={notify} />
     </section>
