@@ -40,6 +40,41 @@ It runs on **your** Cloudflare account. No monthly bill, no per-contact pricing,
 
 ---
 
+## 🤔 What's Cloudflare? (explained simply)
+
+Cloudflare is a company with computers all over the world. You can rent a tiny piece of them to run your own little robot, and
+you can start for free. **OpenDM is that robot.** It lives in your Cloudflare account, watches your Instagram and Facebook
+comments, and sends the DMs for you. You own it. Nobody else does.
+
+**Why not just run it on my laptop?** Because a comment can arrive at 3 a.m., and the robot has to answer right away. A laptop
+goes to sleep, loses Wi-Fi and gets switched off. Cloudflare's computers never sleep, are always online and are fast everywhere,
+so every comment gets its DM even while you're asleep. And you don't have to look after a server.
+
+**What you need:** a free [Cloudflare account](https://dash.cloudflare.com/sign-up), plus your Instagram and/or Facebook account.
+
+**Is it really free?** To start, yes. Cloudflare's free plan currently includes 100,000 Worker requests a day and, for the
+database, 5 million rows read and 100,000 rows written a day, with 5 GB of storage
+([Workers limits](https://developers.cloudflare.com/workers/platform/pricing/),
+[D1 limits](https://developers.cloudflare.com/d1/platform/pricing/)). OpenDM also wakes up once a minute to send queued messages
+and tidy up, which is part of that budget. A small account stays well inside it. A very busy account (many thousands of
+comments a day) could pass it; on the free plan the database then returns errors until the next daily reset at 00:00 UTC, and
+you would move to Cloudflare's paid plan. Check those pages for today's numbers: they can change.
+
+<details>
+<summary><b>Words you'll meet (a tiny glossary)</b></summary>
+
+- **Worker**: a small program that Cloudflare runs for you. OpenDM is one Worker.
+- **D1**: a little notebook (database) in your Cloudflare account where OpenDM writes down rules, conversations and the log.
+- **Webhook**: Instagram or Facebook knocking on OpenDM's door to say "someone just commented!". You tell them the address to knock on.
+- **Private reply**: the first DM, sent in answer to a comment. Meta allows one per comment.
+- **OAuth ("Connect with Instagram")**: the button that lets you say "yes, OpenDM may act for my account" without sharing your password.
+- **Token**: a long secret key that proves OpenDM may act for your account. Keep it private. OpenDM stores it encrypted.
+- **MCP**: a standard plug that lets AI assistants like Claude use tools. OpenDM has one, so you can say "make a flow for AUTOMATION" in plain English.
+- **Meta app**: the little registration you make with Meta (Instagram's and Facebook's parent company) so they allow OpenDM to connect.
+- **App Review**: Meta checking your app before strangers can trigger it. You don't need it to try OpenDM on your own account.
+
+</details>
+
 ## 💡 Why OpenDM
 
 - **No monthly bill.** You pay Cloudflare for what you use, which for a typical small account fits in their free tier ([Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/), [D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/)).
