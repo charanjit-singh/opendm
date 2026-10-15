@@ -1,0 +1,41 @@
+src/admin.ts
+  s_246380a1268afa::t_dbd58a514e878e 1-201
+src/engine.ts
+  s_246380a1268afa::t_438aa5fc04ca0a 1-133
+src/index.ts
+  s_246380a1268afa::t_fff3443e5ec68e 1-63
+src/maintenance.ts
+  s_246380a1268afa::t_e78323468473e6 1-35
+src/queue.ts
+  s_246380a1268afa::t_5525f9593d4507 1-98
+src/store.ts
+  s_246380a1268afa::t_619c900ba13b27 1-226
+src/ui.ts
+  s_246380a1268afa::t_7ebf643b2fe441 1-321
+test/admin.test.ts
+  s_246380a1268afa::t_fa5980299d4452 1-262
+test/conversation.test.ts
+  s_246380a1268afa::t_7d17a756255409 1-139
+test/queue.test.ts
+  s_246380a1268afa::t_10d25a3d611e3a 1-132
+test/schema.test.ts
+  s_246380a1268afa::t_5fc5955a0257a9 1-14
+test/webhook.test.ts
+  s_246380a1268afa::t_49727d967d3934 1-169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "96836e58e84507434d1fc9a53dcbcad9a3eb5208",
+  "prompts": {},
+  "sessions": {
+    "s_246380a1268afa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e14d0ab-cab0-46cc-8f58-f062b7aba45c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Charanjit Singh <charanjitdotsingh@gmail.com>"
+    }
+  }
+}
