@@ -8,7 +8,8 @@ import { rmSync } from "node:fs";
 import { promisify } from "node:util";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { startMockGraph } from "./mock-graph.mjs";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { PAGE_ID, startMockGraph } from "./mock-graph.mjs";
 
 const PORT = 8788,
   GRAPH_PORT = 8799,
@@ -150,7 +151,7 @@ try {
   });
   await step("connect an account (token validated against the mock Graph /me)", async () => {
     const r = await api("POST", "/api/connect", { token: "IGAAe2e-token-0123456789abcdefghij" });
-    assert.equal(r.data.username, "e2e_shop");
+    assert.equal(r.data.username, "acme_studio");
     const me = graph.calls.find((c) => c.path.endsWith("/me"));
     assert.equal(me.auth, "Bearer IGAAe2e-token-0123456789abcdefghij");
   });
@@ -193,7 +194,7 @@ try {
     await until(() => messages().length >= 2, "the follow DM");
     const m = messages()[1];
     assert.deepEqual(m.body.recipient, { id: USER });
-    assert.match(m.body.message.text, /follow @e2e_shop/);
+    assert.match(m.body.message.text, /follow @acme_studio/);
   });
   await step("user says 'done' -> follow verified through the profile API -> email ask", async () => {
     await post(dm("done", "m-2"));
@@ -235,7 +236,7 @@ try {
   await step("CLI: `opendm status` and `opendm rules` talk to the running Worker", async () => {
     const run = promisify(execFile);
     const status = await run("node", ["cli/opendm.ts", "status"], { env: cliEnv });
-    assert.match(status.stdout, /Account: @e2e_shop \(connected\)/);
+    assert.match(status.stdout, /Instagram: acme_studio \(instagram login\)/);
     assert.match((await run("node", ["cli/opendm.ts", "rules"], { env: cliEnv })).stdout, /GUIDE/);
   });
   await step("MCP over stdio: create a flow in plain terms, dry-run it, then a real comment triggers it", async () => {
@@ -264,6 +265,116 @@ try {
     await post(comment("c-mcp", "AUTOMATION"));
     await until(() => messages().length > before, "the private reply for the MCP-created rule");
     assert.deepEqual(messages().at(-1).body.recipient, { comment_id: "c-mcp" });
+  });
+  await step("Facebook: connect a Page from a user token, choose the Page, subscribe feed + messages", async () => {
+    const first = await api("POST", "/api/facebook/connect", { token: "EAAuser00000000000000000000000000" });
+    assert.equal(first.data.needsPage, true);
+    assert.equal(first.data.pages.length, 2);
+    assert.equal((await api("POST", "/api/facebook/select", { pageId: PAGE_ID })).data.connected, true);
+    assert.equal((await api("POST", "/api/subscribe", { platform: "facebook" })).data.subscribed, true);
+    const sub = graph.calls.findLast((c) => c.method === "POST" && c.path.endsWith("/subscribed_apps"));
+    assert.equal(sub.path, `/v25.0/${PAGE_ID}/subscribed_apps`);
+    assert.equal(sub.query.subscribed_fields, "feed,messages,messaging_postbacks");
+  });
+  await step(
+    "Facebook: a Page comment gets a Messenger private reply and a public comment reply; the flow continues over Messenger",
+    async () => {
+      await api("POST", "/api/rules", {
+        name: "Page guide",
+        keywords: "PAGEGUIDE",
+        link: "https://example.com/page-guide",
+        channel: "facebook",
+        public_replies: "Check Messenger!",
+        flow: { requireFollow: false, askEmail: "off" },
+      });
+      const before = messages().length;
+      const fbComment = {
+        object: "page",
+        entry: [
+          {
+            id: PAGE_ID,
+            time: 1,
+            changes: [
+              {
+                field: "feed",
+                value: {
+                  item: "comment",
+                  verb: "add",
+                  comment_id: "fb-c-1",
+                  post_id: `${PAGE_ID}_555`,
+                  parent_id: `${PAGE_ID}_555`,
+                  message: "PAGEGUIDE please",
+                  from: { id: "5500110022", name: "Sam Rivera" },
+                },
+              },
+            ],
+          },
+        ],
+      };
+      assert.equal((await post(fbComment)).status, 200);
+      await until(
+        () => messages().length > before && graph.calls.some((c) => c.path === "/v25.0/fb-c-1/comments"),
+        "the Messenger private reply and the public comment",
+      );
+      const priv = messages().at(-1);
+      assert.equal(priv.path, `/v25.0/${PAGE_ID}/messages`);
+      assert.deepEqual(priv.body.recipient, { comment_id: "fb-c-1" });
+      assert.match(priv.auth, /EAApagetoken/);
+      const fbDm = {
+        object: "page",
+        entry: [
+          {
+            id: PAGE_ID,
+            time: 2,
+            messaging: [
+              {
+                sender: { id: "5500110022" },
+                recipient: { id: PAGE_ID },
+                timestamp: 2,
+                message: { mid: "fb-m-1", text: "yes" },
+              },
+            ],
+          },
+        ],
+      };
+      await post(fbDm);
+      await until(() => messages().length > before + 1, "the Messenger link");
+      assert.match(messages().at(-1).body.message.text, /example\.com\/page-guide/);
+    },
+  );
+  await step("remote MCP: the Worker's own /mcp endpoint (Streamable HTTP) lists tools and runs them", async () => {
+    const mcp = new Client({ name: "e2e-http", version: "0" });
+    await mcp.connect(
+      new StreamableHTTPClientTransport(new URL(`${BASE}/mcp`), {
+        requestInit: { headers: { Authorization: `Bearer ${vars.ADMIN_PASSWORD}` } },
+      }),
+    );
+    try {
+      const { tools } = await mcp.listTools();
+      assert.ok(tools.length >= 29, `only ${tools.length} tools`);
+      const status = await mcp.callTool({ name: "opendm_setup_status", arguments: {} });
+      assert.match(status.content[0].text, /\[x\] OpenDM is running/);
+      const set = await mcp.callTool({
+        name: "opendm_set_messages",
+        arguments: { id: 1, messages: { openerText: ["Hi from A", "Hi from B"] } },
+      });
+      assert.ok(!set.isError, set.content[0].text);
+    } finally {
+      await mcp.close();
+    }
+    const unauth = await fetch(`${BASE}/mcp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" },
+      body: "{}",
+    });
+    assert.equal(unauth.status, 401);
+  });
+  await step("CLI: `opendm setup status --json` is machine readable and sets the exit code", async () => {
+    const run = promisify(execFile);
+    const r = await run("node", ["cli/opendm.ts", "setup", "status", "--json"], { env: cliEnv }).catch((e) => e);
+    const report = JSON.parse(r.stdout);
+    assert.equal(report.steps.length, 9);
+    assert.ok([0, 2].includes(r.code ?? 0));
   });
   await step("the scheduled job runs cleanly", async () => {
     const r = await fetch(`${BASE}/cdn-cgi/local/scheduled?cron=*+*+*+*+*`);
