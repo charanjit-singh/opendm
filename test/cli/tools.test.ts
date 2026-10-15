@@ -1,8 +1,8 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 // The Claude-facing tools (MCP + CLI) against the real Worker.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { OpenDmError } from "../../cli/client.ts";
-import { tools } from "../../cli/tools.ts";
+import { OpenDmError } from "../../src/mcp/client.ts";
+import { tools } from "../../src/mcp/tools.ts";
 import { mockGraph, resetDb, workerClient } from "../support/helpers.ts";
 
 const run = (name: string, input: unknown = {}, client = workerClient()) => {
@@ -139,8 +139,8 @@ describe("switches, limits, log, status", () => {
     expect(await run("opendm_connect_instagram", { token: "IGAAtool-token-0123456789abcdefghij" })).toBe(
       "Connected @shop_account.",
     );
-    expect(await run("opendm_status")).toContain("@shop_account (connected)");
-    expect(await run("opendm_subscribe_webhooks")).toBe("Subscribed to comments and messages.");
+    expect(await run("opendm_status")).toContain("Instagram: shop_account (instagram login)");
+    expect(await run("opendm_subscribe_webhooks")).toBe("Subscribed instagram to its webhooks.");
     expect(graph.calls.map((c) => c.url.pathname)).toContain("/v25.0/17841400000000001/subscribed_apps");
     expect(await run("opendm_get_log", { limit: 5 })).toContain("system/info connected @shop_account");
     expect(await run("opendm_get_log", { kind: "dm" })).toBe("No events yet.");
@@ -157,23 +157,45 @@ describe("switches, limits, log, status", () => {
   });
 
   it("subscribing without an account explains what to do", async () => {
-    await expect(run("opendm_subscribe_webhooks")).rejects.toThrow("Connect an account first");
+    await expect(run("opendm_subscribe_webhooks")).rejects.toThrow("Connect the instagram account first");
   });
 });
 
-it("every tool has a description Claude can act on", () => {
-  expect(tools.map((t) => t.name)).toEqual([
+it("every tool has a description Claude can act on, and the set covers the whole product", () => {
+  const names = tools.map((t) => t.name);
+  expect(new Set(names).size).toBe(names.length);
+  for (const name of [
     "opendm_status",
+    "opendm_setup_status",
+    "opendm_setup_checks",
+    "opendm_get_webhook_details",
+    "opendm_set_app_credentials",
+    "opendm_get_oauth_url",
+    "opendm_exchange_token",
+    "opendm_connect_instagram",
+    "opendm_connect_facebook",
+    "opendm_list_facebook_pages",
+    "opendm_select_facebook_page",
+    "opendm_disconnect",
+    "opendm_subscribe_webhooks",
+    "opendm_refresh_token",
+    "opendm_send_test",
     "opendm_list_rules",
+    "opendm_get_rule",
     "opendm_create_rule",
     "opendm_update_rule",
+    "opendm_set_messages",
     "opendm_delete_rule",
-    "opendm_set_enabled",
     "opendm_test_comment",
-    "opendm_get_log",
-    "opendm_connect_instagram",
-    "opendm_subscribe_webhooks",
+    "opendm_set_enabled",
     "opendm_set_hourly_limit",
-  ]);
+    "opendm_get_log",
+    "opendm_list_conversations",
+    "opendm_list_leads",
+    "opendm_get_queue",
+    "opendm_health",
+  ]) {
+    expect(names).toContain(name);
+  }
   for (const t of tools) expect(t.description.length).toBeGreaterThan(20);
 });

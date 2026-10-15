@@ -3,7 +3,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { beforeEach, describe, expect, it } from "vitest";
-import { createMcpServer } from "../../cli/mcp-server.ts";
+import { createMcpServer } from "../../src/mcp/server.ts";
 import { resetDb, workerClient } from "../support/helpers.ts";
 
 async function connectClient(token?: string) {
