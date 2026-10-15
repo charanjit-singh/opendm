@@ -1,9 +1,9 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 // The whole journey through the real webhook handler: comment -> opener -> follow gate -> email -> link, with a fake Graph API.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { processFollowTimeouts } from "../../src/services/follow-timeouts";
 import { findActiveConversation } from "../../src/db/conversations";
 import { runCron } from "../../src/services/cron";
+import { processFollowTimeouts } from "../../src/services/follow-timeouts";
 import { addRule, commentEvent, connect, dmEvent, mockGraph, postWebhook, resetDb, testEnv } from "../support/helpers";
 
 const USER = "17841499999999991";
@@ -36,7 +36,11 @@ describe("follow gate + email + link", () => {
     expect(check?.url.searchParams.get("fields")).toContain("is_user_follow_business");
 
     await postWebhook(dmEvent({ text: "sam@example.com" }));
-    expect(dms(g).slice(2).map((d) => d.text)).toEqual(["Got it, thanks!", "Here you go:\nhttps://example.com/guide\nIf you get stuck, just reply here."]);
+    expect(
+      dms(g)
+        .slice(2)
+        .map((d) => d.text),
+    ).toEqual(["Got it, thanks!", "Here you go:\nhttps://example.com/guide\nIf you get stuck, just reply here."]);
     expect(await findActiveConversation(testEnv, USER)).toBeNull();
     const row = await testEnv.DB.prepare("SELECT step, email FROM conversations").first<any>();
     expect(row).toEqual({ step: "done", email: "sam@example.com" });
@@ -59,7 +63,11 @@ describe("follow gate + email + link", () => {
     await postWebhook(dmEvent({ text: "yes" }));
     await postWebhook(dmEvent({ text: "done" }));
     expect(dms(g).at(-1)!.text).toContain("can't see the follow");
-    expect(dms(g).map((d) => d.text).join()).not.toContain("example.com/guide");
+    expect(
+      dms(g)
+        .map((d) => d.text)
+        .join(),
+    ).not.toContain("example.com/guide");
     following = true;
     await postWebhook(dmEvent({ text: "done now" }));
     expect(dms(g).at(-1)!.text).toContain("https://example.com/guide");
@@ -117,7 +125,9 @@ describe("follow timeout (cron)", () => {
     await processFollowTimeouts(testEnv);
     expect(dms(g)).toHaveLength(before);
 
-    await testEnv.DB.prepare("UPDATE conversations SET follow_asked_at = ?").bind(Date.now() - 21 * 60_000).run();
+    await testEnv.DB.prepare("UPDATE conversations SET follow_asked_at = ?")
+      .bind(Date.now() - 21 * 60_000)
+      .run();
     expect(await processFollowTimeouts(testEnv)).toBe(1);
     expect(dms(g).at(-1)!.text).toBe("No worries if not, here's the link anyway:\nhttps://example.com/guide");
     expect(await findActiveConversation(testEnv, USER)).toBeNull();
@@ -131,7 +141,9 @@ describe("follow timeout (cron)", () => {
     const g = mockGraph({ following: null });
     await postWebhook(commentEvent({ text: "GUIDE" }));
     await postWebhook(dmEvent({ text: "yes" }));
-    await testEnv.DB.prepare("UPDATE conversations SET follow_asked_at = ?").bind(Date.now() - 6 * 60_000).run();
+    await testEnv.DB.prepare("UPDATE conversations SET follow_asked_at = ?")
+      .bind(Date.now() - 6 * 60_000)
+      .run();
     const r = await runCron(testEnv);
     expect(r.timeouts).toBe(1);
     expect(dms(g).at(-1)!.text).toContain("example.com/guide");

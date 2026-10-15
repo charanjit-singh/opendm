@@ -51,9 +51,8 @@ export interface ConversationKey {
 /** One conversation per person per rule: a new comment restarts it. */
 export async function upsertConversation(env: Env, key: ConversationKey, state: ConvState): Promise<void> {
   const now = Date.now();
-  await env.DB
-    .prepare(
-      `INSERT INTO conversations (ig_user, rule_id, step, tries, email, username, comment_id, follow_asked_at, started, updated)
+  await env.DB.prepare(
+    `INSERT INTO conversations (ig_user, rule_id, step, tries, email, username, comment_id, follow_asked_at, started, updated)
        VALUES (?,?,?,?,?,?,?,?,?,?)
        ON CONFLICT(ig_user, rule_id) DO UPDATE SET
          step = excluded.step,
@@ -63,7 +62,7 @@ export async function upsertConversation(env: Env, key: ConversationKey, state: 
          comment_id = COALESCE(excluded.comment_id, conversations.comment_id),
          follow_asked_at = excluded.follow_asked_at,
          updated = excluded.updated`,
-    )
+  )
     .bind(
       key.ig_user,
       key.rule_id,
@@ -81,10 +80,9 @@ export async function upsertConversation(env: Env, key: ConversationKey, state: 
 
 /** The conversation a DM from this person belongs to: their most recently updated unfinished one. */
 export async function findActiveConversation(env: Env, igUser: string): Promise<Conversation | null> {
-  const row = await env.DB
-    .prepare(
-      "SELECT * FROM conversations WHERE ig_user = ? AND step IN ('opened','awaiting_follow','awaiting_email') ORDER BY updated DESC LIMIT 1",
-    )
+  const row = await env.DB.prepare(
+    "SELECT * FROM conversations WHERE ig_user = ? AND step IN ('opened','awaiting_follow','awaiting_email') ORDER BY updated DESC LIMIT 1",
+  )
     .bind(igUser)
     .first<ConversationRow>();
   return row ? toConversation(row) : null;
@@ -92,8 +90,9 @@ export async function findActiveConversation(env: Env, igUser: string): Promise<
 
 /** People still on the follow question since `olderThan`. */
 export async function findFollowWaiting(env: Env, olderThan: number): Promise<Conversation[]> {
-  const { results } = await env.DB
-    .prepare("SELECT * FROM conversations WHERE step = 'awaiting_follow' AND follow_asked_at IS NOT NULL AND follow_asked_at <= ?")
+  const { results } = await env.DB.prepare(
+    "SELECT * FROM conversations WHERE step = 'awaiting_follow' AND follow_asked_at IS NOT NULL AND follow_asked_at <= ?",
+  )
     .bind(olderThan)
     .all<ConversationRow>();
   return results.map(toConversation);

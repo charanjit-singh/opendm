@@ -1,13 +1,17 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { useEffect, useState } from "preact/hooks";
 import type { EventRow, EventStatus } from "../../../../src/types/api";
+import type { Flash } from "../../App";
 import { api } from "../../api";
 import { errorMessage, timeAgo } from "../../lib/format";
-import type { Flash } from "../../App";
 import { Card } from "../ui/Card";
 import { Pill } from "../ui/Pill";
 
-const STATUS_TONE: Partial<Record<EventStatus, "ok" | "warn" | "error">> = { sent: "ok", queued: "warn", error: "error" };
+const STATUS_TONE: Partial<Record<EventStatus, "ok" | "warn" | "error">> = {
+  sent: "ok",
+  queued: "warn",
+  error: "error",
+};
 
 export function LogTab({ notify }: { notify: (text: string, kind?: Flash["kind"]) => void }) {
   const [events, setEvents] = useState<EventRow[]>([]);

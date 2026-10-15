@@ -12,18 +12,36 @@ export function words(text: string): string[] {
 
 /** Optimal string alignment distance: insert, delete, substitute or swap two neighbours each cost 1. */
 export function editDistance(a: string, b: string): number {
-  const d = Array.from({ length: a.length + 1 }, (_, i) => Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)));
+  const d = Array.from({ length: a.length + 1 }, (_, i) =>
+    Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)),
+  );
   for (let i = 1; i <= a.length; i++) {
     for (let j = 1; j <= b.length; j++) {
       d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1])
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
     }
   }
   return d[a.length][b.length];
 }
 
 /** Everyday words one typo away from a common keyword. Never matched fuzzily. */
-const NOT_A_TYPO = new Set(["yes", "yeah", "see", "the", "ok", "okay", "wow", "nice", "love", "cool", "lol", "link", "line", "like"]);
+const NOT_A_TYPO = new Set([
+  "yes",
+  "yeah",
+  "see",
+  "the",
+  "ok",
+  "okay",
+  "wow",
+  "nice",
+  "love",
+  "cool",
+  "lol",
+  "link",
+  "line",
+  "like",
+]);
 
 export interface KeywordMatch {
   keyword: string;
@@ -59,7 +77,8 @@ export function matchKeyword(text: string, keywords: string[], opts: { fuzzy?: b
       const k = words(keyword);
       if (k.length !== 1 || k[0].length < 4) continue;
       const d = editDistance(word, k[0]);
-      if (d <= (k[0].length <= 5 ? 1 : 2) && (!found || d < found.d || (d === found.d && at < found.at))) found = { keyword, at, d, word };
+      if (d <= (k[0].length <= 5 ? 1 : 2) && (!found || d < found.d || (d === found.d && at < found.at)))
+        found = { keyword, at, d, word };
     }
   });
   const f = found as { keyword: string; word: string } | null;
@@ -70,7 +89,11 @@ export const splitKeywords = (s: string | string[]) =>
   (Array.isArray(s) ? s : s.split(/[,\n]/)).map((x) => x.trim()).filter(Boolean);
 
 /** Which rule fires for a comment on a given media: the first enabled rule (post-specific rules first) that matches. */
-export function pickRule<R extends { enabled: boolean; keywords: string[]; media_id: string | null; fuzzy: boolean }>(rules: R[], text: string, mediaId?: string): { rule: R; match: KeywordMatch } | null {
+export function pickRule<R extends { enabled: boolean; keywords: string[]; media_id: string | null; fuzzy: boolean }>(
+  rules: R[],
+  text: string,
+  mediaId?: string,
+): { rule: R; match: KeywordMatch } | null {
   const ordered = [...rules].sort((a, b) => Number(!!b.media_id) - Number(!!a.media_id));
   for (const rule of ordered) {
     if (!rule.enabled) continue;

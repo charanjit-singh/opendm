@@ -1,9 +1,9 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { useState } from "preact/hooks";
 import type { DryRunResult } from "../../../../src/types/api";
+import type { Flash } from "../../App";
 import { api } from "../../api";
 import { errorMessage } from "../../lib/format";
-import type { Flash } from "../../App";
 import { Card } from "../ui/Card";
 import { SelectField, TextAreaField, TextField } from "../ui/Field";
 import { Notice } from "../ui/Notice";
@@ -19,7 +19,13 @@ export function DryRunTab({ notify }: { notify: (text: string, kind?: Flash["kin
 
   const run = () =>
     api
-      .dryRun({ comment, name, replies, following: following as "yes" | "no" | "unknown", waitMinutes: Number(wait) || 0 })
+      .dryRun({
+        comment,
+        name,
+        replies,
+        following: following as "yes" | "no" | "unknown",
+        waitMinutes: Number(wait) || 0,
+      })
       .then(setResult)
       .catch((e) => notify(errorMessage(e), "error"));
 
@@ -30,7 +36,13 @@ export function DryRunTab({ notify }: { notify: (text: string, kind?: Flash["kin
         <TextField id="t-comment" label="Comment" placeholder="GUIDE please" value={comment} onInput={setComment} />
         <TextField id="t-name" label="First name (optional)" placeholder="Sam" value={name} onInput={setName} />
       </div>
-      <TextAreaField id="t-replies" label="What the person replies next (one per line)" placeholder={"yes\ndone\nme@example.com"} value={replies} onInput={setReplies} />
+      <TextAreaField
+        id="t-replies"
+        label="What the person replies next (one per line)"
+        placeholder={"yes\ndone\nme@example.com"}
+        value={replies}
+        onInput={setReplies}
+      />
       <div class="row">
         <SelectField
           id="t-following"
@@ -43,7 +55,15 @@ export function DryRunTab({ notify }: { notify: (text: string, kind?: Flash["kin
           ]}
           onChange={setFollowing}
         />
-        <TextField id="t-wait" type="number" min={0} label="Then wait (minutes, no reply)" placeholder="0" value={wait} onInput={setWait} />
+        <TextField
+          id="t-wait"
+          type="number"
+          min={0}
+          label="Then wait (minutes, no reply)"
+          placeholder="0"
+          value={wait}
+          onInput={setWait}
+        />
       </div>
       <p>
         <button type="button" class="btn" id="t-run" onClick={run}>

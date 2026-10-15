@@ -41,7 +41,12 @@ const keywords = z
 const publicReplies = z
   .union([z.string(), z.array(z.string())])
   .default([])
-  .transform((v) => (Array.isArray(v) ? v : v.split("\n")).map((line) => line.trim()).filter(Boolean).slice(0, 10));
+  .transform((v) =>
+    (Array.isArray(v) ? v : v.split("\n"))
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .slice(0, 10),
+  );
 
 export const ruleSchema = z
   .object({
@@ -68,7 +73,11 @@ export const loginSchema = z.object({ password: z.string() });
 export const connectSchema = z.object({ token: z.string().trim().min(20, "Paste the Instagram access token") });
 export const enabledSchema = z.object({ enabled: z.boolean() });
 export const settingsSchema = z.object({
-  hourlyLimit: z.number().int("Hourly limit must be 1 to 5000").min(1, "Hourly limit must be 1 to 5000").max(5000, "Hourly limit must be 1 to 5000"),
+  hourlyLimit: z
+    .number()
+    .int("Hourly limit must be 1 to 5000")
+    .min(1, "Hourly limit must be 1 to 5000")
+    .max(5000, "Hourly limit must be 1 to 5000"),
 });
 
 const lines = z.union([z.string(), z.array(z.string())]).default([]);

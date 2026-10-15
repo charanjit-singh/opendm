@@ -2,7 +2,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { recentEvents } from "../../src/db/events";
 import { setSetting } from "../../src/db/settings";
-import { addRule, commentEvent, connect, dmEvent, IG_ID, mockGraph, postWebhook, request, resetDb, testEnv, TOKEN } from "../support/helpers";
+import {
+  addRule,
+  commentEvent,
+  connect,
+  dmEvent,
+  IG_ID,
+  mockGraph,
+  postWebhook,
+  request,
+  resetDb,
+  TOKEN,
+  testEnv,
+} from "../support/helpers";
 
 beforeEach(async () => {
   vi.restoreAllMocks();
@@ -12,13 +24,19 @@ beforeEach(async () => {
 describe("GET /webhook (Meta verification handshake)", () => {
   const q = (o: Record<string, string>) => `/webhook?${new URLSearchParams(o)}`;
   it("echoes the challenge when the verify token matches", async () => {
-    const res = await request(q({ "hub.mode": "subscribe", "hub.verify_token": "verify-me", "hub.challenge": "1158201444" }));
+    const res = await request(
+      q({ "hub.mode": "subscribe", "hub.verify_token": "verify-me", "hub.challenge": "1158201444" }),
+    );
     expect(res.status).toBe(200);
     expect(await res.text()).toBe("1158201444");
   });
   it("refuses a wrong token, a wrong mode and a missing token", async () => {
-    expect((await request(q({ "hub.mode": "subscribe", "hub.verify_token": "nope", "hub.challenge": "1" }))).status).toBe(403);
-    expect((await request(q({ "hub.mode": "unsubscribe", "hub.verify_token": "verify-me", "hub.challenge": "1" }))).status).toBe(403);
+    expect(
+      (await request(q({ "hub.mode": "subscribe", "hub.verify_token": "nope", "hub.challenge": "1" }))).status,
+    ).toBe(403);
+    expect(
+      (await request(q({ "hub.mode": "unsubscribe", "hub.verify_token": "verify-me", "hub.challenge": "1" }))).status,
+    ).toBe(403);
     expect((await request(q({ "hub.mode": "subscribe", "hub.challenge": "1" }))).status).toBe(403);
   });
 });
@@ -30,7 +48,7 @@ describe("POST /webhook signature", () => {
     const g = mockGraph();
     const ev = commentEvent({ text: "GUIDE" });
     expect((await postWebhook(ev, { signature: null })).status).toBe(401);
-    expect((await postWebhook(ev, { signature: "sha256=" + "ab".repeat(32) })).status).toBe(401);
+    expect((await postWebhook(ev, { signature: `sha256=${"ab".repeat(32)}` })).status).toBe(401);
     expect((await postWebhook(ev, { secret: "not-the-app-secret" })).status).toBe(401);
     expect(g.sent()).toEqual([]);
     expect(await recentEvents(testEnv, 10)).toEqual([]);
@@ -44,7 +62,11 @@ describe("POST /webhook signature", () => {
   it("answers 400 on a signed body that is not JSON", async () => {
     const { sign } = await import("../../src/lib/crypto");
     const body = "not json";
-    const res = await request("/webhook", { method: "POST", body, headers: { "X-Hub-Signature-256": await sign(testEnv.INSTAGRAM_APP_SECRET, body) } });
+    const res = await request("/webhook", {
+      method: "POST",
+      body,
+      headers: { "X-Hub-Signature-256": await sign(testEnv.INSTAGRAM_APP_SECRET, body) },
+    });
     expect(res.status).toBe(400);
   });
 });
@@ -56,7 +78,11 @@ describe("comment -> private reply + public reply", () => {
     const g = mockGraph();
     await postWebhook(commentEvent({ id: "c1", text: "GUIDE please!", username: "sam" }));
     expect(g.sent()).toEqual([
-      { kind: "private_reply", to: "c1", text: "Hey sam! Saw your comment. Want the link? Just reply yes and I'll send it right here." },
+      {
+        kind: "private_reply",
+        to: "c1",
+        text: "Hey sam! Saw your comment. Want the link? Just reply yes and I'll send it right here.",
+      },
       { kind: "public_reply", to: "c1", text: "Sent you a DM!" },
     ]);
     const priv = g.calls.find((c) => c.url.pathname.endsWith("/messages"))!;
@@ -135,7 +161,10 @@ describe("comment -> private reply + public reply", () => {
     const g = mockGraph();
     await postWebhook(commentEvent({ text: "GUIDE" }));
     expect(g.sent()).toEqual([]);
-    expect((await recentEvents(testEnv, 1))[0]).toMatchObject({ status: "error", error: "no Instagram account connected" });
+    expect((await recentEvents(testEnv, 1))[0]).toMatchObject({
+      status: "error",
+      error: "no Instagram account connected",
+    });
   });
 
   it("does not post the public reply when the private reply failed", async () => {
@@ -145,7 +174,9 @@ describe("comment -> private reply + public reply", () => {
     g.on(/\/messages$/, () => Response.json({ error: { message: "(#10) Cannot reply", code: 10 } }, { status: 400 }));
     await postWebhook(commentEvent({ text: "GUIDE" }));
     expect(g.sent().filter((s) => s.kind === "public_reply")).toEqual([]);
-    expect((await recentEvents(testEnv, 5)).some((e: any) => e.status === "error" && e.error.startsWith("permission:"))).toBe(true);
+    expect(
+      (await recentEvents(testEnv, 5)).some((e: any) => e.status === "error" && e.error.startsWith("permission:")),
+    ).toBe(true);
   });
 
   it("rotates the public reply lines", async () => {
@@ -153,7 +184,10 @@ describe("comment -> private reply + public reply", () => {
     await addRule({ public_replies: ["one", "two"] });
     const g = mockGraph();
     for (const id of ["r1", "r2", "r3", "r4"]) await postWebhook(commentEvent({ id, text: "GUIDE", from: `u${id}` }));
-    const pubs = g.sent().filter((s) => s.kind === "public_reply").map((s) => s.text);
+    const pubs = g
+      .sent()
+      .filter((s) => s.kind === "public_reply")
+      .map((s) => s.text);
     for (let i = 1; i < pubs.length; i++) expect(pubs[i]).not.toBe(pubs[i - 1]);
   });
 });

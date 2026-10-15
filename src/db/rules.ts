@@ -76,18 +76,18 @@ const columns = (v: RuleValues) => [
 
 export async function createRule(env: Env, values: RuleValues): Promise<number> {
   const now = Date.now();
-  const result = await env.DB
-    .prepare(
-      "INSERT INTO rules (name, keywords, media_id, enabled, link, public_replies, flow, fuzzy, created, updated) VALUES (?,?,?,?,?,?,?,?,?,?)",
-    )
+  const result = await env.DB.prepare(
+    "INSERT INTO rules (name, keywords, media_id, enabled, link, public_replies, flow, fuzzy, created, updated) VALUES (?,?,?,?,?,?,?,?,?,?)",
+  )
     .bind(...columns(values), now, now)
     .run();
   return result.meta.last_row_id as number;
 }
 
 export async function updateRule(env: Env, id: number, values: RuleValues): Promise<void> {
-  await env.DB
-    .prepare("UPDATE rules SET name=?, keywords=?, media_id=?, enabled=?, link=?, public_replies=?, flow=?, fuzzy=?, updated=? WHERE id=?")
+  await env.DB.prepare(
+    "UPDATE rules SET name=?, keywords=?, media_id=?, enabled=?, link=?, public_replies=?, flow=?, fuzzy=?, updated=? WHERE id=?",
+  )
     .bind(...columns(values), Date.now(), id)
     .run();
 }

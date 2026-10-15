@@ -4,7 +4,12 @@ import type { Rule } from "../db/rules";
 import type { Vars } from "./flow";
 
 /** Placeholder values for a rule's messages. */
-export function buildVars(rule: Rule, account: Account, who: { name?: string; username?: string | null }, keyword: string): Vars {
+export function buildVars(
+  rule: Rule,
+  account: Account,
+  who: { name?: string; username?: string | null },
+  keyword: string,
+): Vars {
   return {
     name: who.name,
     username: who.username ?? undefined,

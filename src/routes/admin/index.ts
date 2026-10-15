@@ -2,8 +2,8 @@
 import { Hono } from "hono";
 import { recentEvents } from "../../db/events";
 import { isEnabled, SETTING, setSetting } from "../../db/settings";
-import { requireAdmin } from "../../middleware/admin-auth";
 import { parseBody } from "../../lib/validate";
+import { requireAdmin } from "../../middleware/admin-auth";
 import { dryRun } from "../../services/dry-run";
 import { buildStatus } from "../../services/status";
 import type { AppEnv } from "../../types/app";

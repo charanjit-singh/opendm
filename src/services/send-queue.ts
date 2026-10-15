@@ -31,7 +31,9 @@ export const hourlyLimit = async (env: Env): Promise<number> =>
   (await getNumberSetting(env, SETTING.hourlyLimit)) ?? DEFAULT_HOURLY_LIMIT;
 
 export async function sentLastHour(env: Env): Promise<number> {
-  const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM sends WHERE ts > ?").bind(Date.now() - WINDOW_MS).first<{ n: number }>();
+  const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM sends WHERE ts > ?")
+    .bind(Date.now() - WINDOW_MS)
+    .first<{ n: number }>();
   return row?.n ?? 0;
 }
 
@@ -42,8 +44,7 @@ export const backoffMs = (attempts: number): number => 60_000 * 2 ** Math.max(0,
 
 async function enqueue(env: Env, job: Job, attempts: number, delayMs: number, error?: string): Promise<void> {
   const now = Date.now();
-  await env.DB
-    .prepare("INSERT INTO outbox (ts, due, job, attempts, status, error) VALUES (?,?,?,?,'pending',?)")
+  await env.DB.prepare("INSERT INTO outbox (ts, due, job, attempts, status, error) VALUES (?,?,?,?,'pending',?)")
     .bind(now, now + delayMs, JSON.stringify(job), attempts, error ?? null)
     .run();
 }
@@ -61,7 +62,11 @@ const describeJob = (job: Job) => {
   };
 };
 
-function callGraph(env: Env, job: Job, account: NonNullable<Awaited<ReturnType<typeof getAccount>>>): Promise<GraphResult> {
+function callGraph(
+  env: Env,
+  job: Job,
+  account: NonNullable<Awaited<ReturnType<typeof getAccount>>>,
+): Promise<GraphResult> {
   const graph = graphClientFor(env, account);
   switch (job.kind) {
     case "private_reply":
@@ -83,7 +88,11 @@ async function run(env: Env, job: Job, attempts: number): Promise<SendOutcome> {
   }
   if (!(await isUnderLimit(env))) {
     await enqueue(env, job, attempts, QUEUE_DELAY_MS);
-    await logEvent(env, { ...log, status: "queued", error: `over the ${await hourlyLimit(env)}/hour cap, will send shortly` });
+    await logEvent(env, {
+      ...log,
+      status: "queued",
+      error: `over the ${await hourlyLimit(env)}/hour cap, will send shortly`,
+    });
     return "queued";
   }
   await env.DB.prepare("INSERT INTO sends (ts) VALUES (?)").bind(Date.now()).run();
@@ -112,8 +121,9 @@ interface OutboxRow {
 
 /** Cron: send what is due. Stops early once the hourly cap is reached. Returns how many jobs it ran. */
 export async function drainOutbox(env: Env, max = 25): Promise<number> {
-  const { results } = await env.DB
-    .prepare("SELECT id, job, attempts FROM outbox WHERE status = 'pending' AND due <= ? ORDER BY id LIMIT ?")
+  const { results } = await env.DB.prepare(
+    "SELECT id, job, attempts FROM outbox WHERE status = 'pending' AND due <= ? ORDER BY id LIMIT ?",
+  )
     .bind(Date.now(), max)
     .all<OutboxRow>();
   let ran = 0;

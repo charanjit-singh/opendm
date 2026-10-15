@@ -10,7 +10,11 @@ interface RulesTableProps {
 
 export function RulesTable({ rules, onEdit, onDelete }: RulesTableProps) {
   if (!rules.length) {
-    return <p class="hint" id="rules-list">No rules yet. Create one to start replying to comments.</p>;
+    return (
+      <p class="hint" id="rules-list">
+        No rules yet. Create one to start replying to comments.
+      </p>
+    );
   }
   return (
     <div id="rules-list" class="table-scroll">

@@ -10,19 +10,21 @@ describe("webhook signature (X-Hub-Signature-256)", () => {
     expect(await verifySignature("secret", enc(body), await sign("secret", body))).toBe(true);
   });
   it("matches a known HMAC vector", async () => {
-    expect(await sign("key", "The quick brown fox jumps over the lazy dog")).toBe("sha256=f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8");
+    expect(await sign("key", "The quick brown fox jumps over the lazy dog")).toBe(
+      "sha256=f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8",
+    );
   });
   it("rejects a wrong secret, a changed body, a missing or malformed header", async () => {
     const good = await sign("secret", body);
     expect(await verifySignature("other", enc(body), good)).toBe(false);
-    expect(await verifySignature("secret", enc(body + " "), good)).toBe(false);
+    expect(await verifySignature("secret", enc(`${body} `), good)).toBe(false);
     expect(await verifySignature("secret", enc(body), null)).toBe(false);
     expect(await verifySignature("secret", enc(body), good.replace("sha256=", "sha1="))).toBe(false);
     expect(await verifySignature("secret", enc(body), "sha256=zz")).toBe(false);
     expect(await verifySignature("secret", enc(body), "sha256=abcd")).toBe(false);
   });
   it("rejects everything when no secret is configured", async () => {
-    expect(await verifySignature(undefined, enc(body), "sha256=" + "00".repeat(32))).toBe(false);
+    expect(await verifySignature(undefined, enc(body), `sha256=${"00".repeat(32)}`)).toBe(false);
   });
 });
 

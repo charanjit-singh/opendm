@@ -2,12 +2,7 @@
 // Turns webhook events into actions: a keyword comment starts a conversation (private reply + public reply),
 // a DM moves it one step along the rule's flow.
 import { getAccount } from "../db/account";
-import {
-  type Conversation,
-  findActiveConversation,
-  toState,
-  upsertConversation,
-} from "../db/conversations";
+import { type Conversation, findActiveConversation, toState, upsertConversation } from "../db/conversations";
 import { keywordForComment, logEvent, markProcessed } from "../db/events";
 import { getRule, listRules } from "../db/rules";
 import { getSetting, isEnabled, SETTING, setSetting } from "../db/settings";
@@ -54,10 +49,21 @@ async function onComment(env: Env, accountId: string | undefined, comment: IgCom
   const { rule, match } = hit;
   const account = await getAccount(env);
   if (!account) {
-    await logEvent(env, { ...base, status: "error", rule_id: rule.id, keyword: match.keyword, error: "no Instagram account connected" });
+    await logEvent(env, {
+      ...base,
+      status: "error",
+      rule_id: rule.id,
+      keyword: match.keyword,
+      error: "no Instagram account connected",
+    });
     return;
   }
-  const ctx: LogContext = { username: comment.from?.username, keyword: match.keyword, rule_id: rule.id, ig_user: comment.from?.id };
+  const ctx: LogContext = {
+    username: comment.from?.username,
+    keyword: match.keyword,
+    rule_id: rule.id,
+    ig_user: comment.from?.id,
+  };
   const outcome = start(rule.flow, buildVars(rule, account, { username: comment.from?.username }, match.keyword));
   const sent = await dispatch(env, { kind: "private_reply", commentId: comment.id, text: outcome.messages[0], ctx });
   if (sent === "error") return;
@@ -87,7 +93,13 @@ async function onMessage(env: Env, accountId: string | undefined, message: IgMes
 
   const conversation = await findActiveConversation(env, sender);
   if (!conversation) {
-    await logEvent(env, { kind: "dm", status: "info", ig_user: sender, text, error: "message without an active conversation, ignored" });
+    await logEvent(env, {
+      kind: "dm",
+      status: "info",
+      ig_user: sender,
+      text,
+      error: "message without an active conversation, ignored",
+    });
     return;
   }
   const account = await getAccount(env);
@@ -110,7 +122,8 @@ async function onMessage(env: Env, accountId: string | undefined, message: IgMes
       profile = result.ok
         ? {
             name: result.data.name?.split(" ")[0],
-            following: typeof result.data.is_user_follow_business === "boolean" ? result.data.is_user_follow_business : null,
+            following:
+              typeof result.data.is_user_follow_business === "boolean" ? result.data.is_user_follow_business : null,
           }
         : { following: null };
     }
@@ -123,12 +136,26 @@ async function onMessage(env: Env, accountId: string | undefined, message: IgMes
     now: Date.now(),
   });
   const ctx: LogContext = { username: conversation.username, keyword, rule_id: rule.id, ig_user: sender };
-  await logEvent(env, { kind: "dm", status: "info", ig_user: sender, username: conversation.username, rule_id: rule.id, keyword, text: `[user] ${text}`, error: outcome.note });
+  await logEvent(env, {
+    kind: "dm",
+    status: "info",
+    ig_user: sender,
+    username: conversation.username,
+    rule_id: rule.id,
+    keyword,
+    text: `[user] ${text}`,
+    error: outcome.note,
+  });
   await sendOutcome(env, conversation, outcome, ctx);
 }
 
 /** Sends an outcome's messages in order (stopping at the first failure) and saves the new state. */
-export async function sendOutcome(env: Env, conversation: Conversation, outcome: Outcome, ctx: LogContext): Promise<void> {
+export async function sendOutcome(
+  env: Env,
+  conversation: Conversation,
+  outcome: Outcome,
+  ctx: LogContext,
+): Promise<void> {
   for (const text of outcome.messages) {
     if ((await dispatch(env, { kind: "dm", userId: conversation.ig_user, text, ctx })) === "error") break;
   }

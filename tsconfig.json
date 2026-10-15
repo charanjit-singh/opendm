@@ -3,26 +3,13 @@
     "target": "ES2022",
     "module": "ES2022",
     "moduleResolution": "bundler",
-    "lib": [
-      "ES2022"
-    ],
-    "types": [
-      "@cloudflare/workers-types",
-      "@cloudflare/vitest-plugin/types",
-      "node"
-    ],
+    "lib": ["ES2022"],
+    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-plugin/types", "node"],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
     "resolveJsonModule": true
   },
-  "include": [
-    "src",
-    "test",
-    "vitest.config.ts",
-    "vite.config.ts"
-  ],
-  "exclude": [
-    "web"
-  ]
+  "include": ["src", "test", "vitest.config.ts", "vite.config.ts"],
+  "exclude": ["web"]
 }

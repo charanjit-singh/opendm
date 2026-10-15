@@ -11,10 +11,6 @@ body {
   font: var(--font-size-md) / 1.5 var(--font-sans);
 }
 
-[hidden] {
-  display: none !important;
-}
-
 a {
   color: var(--color-brand);
 }

@@ -1,8 +1,8 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { makeToken } from "../../src/lib/crypto";
 import { getAccount } from "../../src/db/account";
 import { getSetting } from "../../src/db/settings";
+import { makeToken } from "../../src/lib/crypto";
 import { refreshTokenIfNeeded } from "../../src/services/token-refresh";
 import { api, connect, IG_ID, login, mockGraph, request, resetDb, testEnv } from "../support/helpers";
 
@@ -35,8 +35,20 @@ describe("admin auth", () => {
     expect((await request("/api/status", { headers: { Authorization: "Bearer wrong" } })).status).toBe(429);
   });
   it("rejects every API call without a session", async () => {
-    for (const [m, p] of [["GET", "/api/status"], ["GET", "/api/rules"], ["POST", "/api/rules"], ["POST", "/api/test"], ["GET", "/api/log"], ["POST", "/api/connect"], ["POST", "/api/enabled"]]) {
-      const res = await request(p, { method: m, headers: { "Content-Type": "application/json" }, body: m === "POST" ? "{}" : undefined });
+    for (const [m, p] of [
+      ["GET", "/api/status"],
+      ["GET", "/api/rules"],
+      ["POST", "/api/rules"],
+      ["POST", "/api/test"],
+      ["GET", "/api/log"],
+      ["POST", "/api/connect"],
+      ["POST", "/api/enabled"],
+    ]) {
+      const res = await request(p, {
+        method: m,
+        headers: { "Content-Type": "application/json" },
+        body: m === "POST" ? "{}" : undefined,
+      });
       expect(res.status, `${m} ${p}`).toBe(401);
     }
   });
@@ -62,7 +74,11 @@ describe("admin auth", () => {
   });
   it("needs a JSON content type on writes (CSRF guard)", async () => {
     const { cookie } = await login();
-    const res = await request("/api/enabled", { method: "POST", headers: { Cookie: cookie, "Content-Type": "text/plain" }, body: '{"enabled":false}' });
+    const res = await request("/api/enabled", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "text/plain" },
+      body: '{"enabled":false}',
+    });
     expect(res.status).toBe(415);
   });
   it("locks out after 10 wrong passwords", async () => {
@@ -72,7 +88,11 @@ describe("admin auth", () => {
   });
   it("logout clears the cookie", async () => {
     const { cookie } = await login();
-    const res = await request("/api/logout", { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: "{}" });
+    const res = await request("/api/logout", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: "{}",
+    });
     expect(res.headers.get("Set-Cookie")).toMatch(/Max-Age=0/);
   });
 });
@@ -80,14 +100,31 @@ describe("admin auth", () => {
 describe("rules", () => {
   it("creates, lists, updates and deletes a rule", async () => {
     const { cookie } = await login();
-    const created = await api(cookie, "POST", "/api/rules", { name: "Guide", keywords: "guide, LINK", link: "https://example.com", public_replies: "a\nb", flow: { askEmail: "optional", followTimeoutMin: 30 } });
+    const created = await api(cookie, "POST", "/api/rules", {
+      name: "Guide",
+      keywords: "guide, LINK",
+      link: "https://example.com",
+      public_replies: "a\nb",
+      flow: { askEmail: "optional", followTimeoutMin: 30 },
+    });
     expect(created.res.status).toBe(201);
     const id = created.data.rule.id;
-    expect(created.data.rule).toMatchObject({ name: "Guide", keywords: ["guide", "LINK"], public_replies: ["a", "b"], enabled: true, fuzzy: true });
+    expect(created.data.rule).toMatchObject({
+      name: "Guide",
+      keywords: ["guide", "LINK"],
+      public_replies: ["a", "b"],
+      enabled: true,
+      fuzzy: true,
+    });
     expect(created.data.rule.flow).toMatchObject({ askEmail: "optional", followTimeoutMin: 30, requireFollow: true });
 
     expect((await api(cookie, "GET", "/api/rules")).data.rules).toHaveLength(1);
-    const upd = await api(cookie, "PUT", `/api/rules/${id}`, { name: "Guide v2", keywords: ["guide"], link: "https://example.com/2", enabled: false });
+    const upd = await api(cookie, "PUT", `/api/rules/${id}`, {
+      name: "Guide v2",
+      keywords: ["guide"],
+      link: "https://example.com/2",
+      enabled: false,
+    });
     expect(upd.data.rule).toMatchObject({ name: "Guide v2", enabled: false, link: "https://example.com/2" });
     expect((await api(cookie, "DELETE", `/api/rules/${id}`)).res.status).toBe(200);
     expect((await api(cookie, "GET", "/api/rules")).data.rules).toEqual([]);
@@ -96,7 +133,9 @@ describe("rules", () => {
   it("validates input", async () => {
     const { cookie } = await login();
     expect((await api(cookie, "POST", "/api/rules", { keywords: " , " })).data.error).toMatch(/keyword/i);
-    expect((await api(cookie, "POST", "/api/rules", { keywords: "a", link: "javascript:alert(1)" })).data.error).toMatch(/http/);
+    expect(
+      (await api(cookie, "POST", "/api/rules", { keywords: "a", link: "javascript:alert(1)" })).data.error,
+    ).toMatch(/http/);
   });
 });
 
@@ -117,7 +156,9 @@ describe("connect an account", () => {
   it("shows Instagram's complaint for a bad token and stores nothing", async () => {
     const { cookie } = await login();
     const g = mockGraph();
-    g.on(/\/me/, () => Response.json({ error: { message: "Invalid OAuth access token.", code: 190 } }, { status: 401 }));
+    g.on(/\/me/, () =>
+      Response.json({ error: { message: "Invalid OAuth access token.", code: 190 } }, { status: 401 }),
+    );
     const { res, data } = await api(cookie, "POST", "/api/connect", { token: "IGAAbad-token-0123456789abcdef" });
     expect(res.status).toBe(400);
     expect(data.error).toContain("Invalid OAuth access token");
@@ -141,7 +182,14 @@ describe("status, switch and settings", () => {
     const { cookie } = await login();
     await connect();
     const s = (await api(cookie, "GET", "/api/status")).data;
-    expect(s).toMatchObject({ enabled: true, connected: true, username: "shop_account", webhookUrl: "https://opendm.test/webhook", oauthAvailable: true, hourlyLimit: 150 });
+    expect(s).toMatchObject({
+      enabled: true,
+      connected: true,
+      username: "shop_account",
+      webhookUrl: "https://opendm.test/webhook",
+      oauthAvailable: true,
+      hourlyLimit: 150,
+    });
     expect((await api(cookie, "POST", "/api/enabled", { enabled: false })).data.enabled).toBe(false);
     expect((await api(cookie, "GET", "/api/status")).data.enabled).toBe(false);
   });
@@ -158,7 +206,13 @@ describe("dry run tester", () => {
   async function setup(flow: object = {}) {
     const { cookie } = await login();
     await connect();
-    await api(cookie, "POST", "/api/rules", { name: "Guide", keywords: "guide", link: "https://example.com/g", public_replies: "On its way!", flow });
+    await api(cookie, "POST", "/api/rules", {
+      name: "Guide",
+      keywords: "guide",
+      link: "https://example.com/g",
+      public_replies: "On its way!",
+      flow,
+    });
     return cookie;
   }
   it("reports no match", async () => {
@@ -168,7 +222,12 @@ describe("dry run tester", () => {
   });
   it("shows the public reply, the opener and the whole conversation", async () => {
     const cookie = await setup({ askEmail: "optional" });
-    const { data } = await api(cookie, "POST", "/api/test", { comment: "GUIDE!", name: "Sam", replies: "yes\ndone\nme@x.io", following: "yes" });
+    const { data } = await api(cookie, "POST", "/api/test", {
+      comment: "GUIDE!",
+      name: "Sam",
+      replies: "yes\ndone\nme@x.io",
+      following: "yes",
+    });
     expect(data).toMatchObject({ matched: true, finalStep: "done", rule: { name: "Guide" } });
     const lines = data.transcript.map((t: any) => `${t.from}: ${t.text}`);
     expect(lines[1]).toBe("public: On its way!");
@@ -224,10 +283,25 @@ describe("OAuth with Instagram Login", () => {
   it("callback exchanges the code for a long-lived token and connects the account", async () => {
     const { cookie } = await login();
     const g = mockGraph();
-    g.on(/oauth\/access_token/, () => ({ data: [{ access_token: "IGAAshort-token-0123456789abcdef", user_id: IG_ID, permissions: "instagram_business_basic" }] }));
-    g.on(/\/access_token\?grant_type=ig_exchange_token/, () => ({ access_token: "IGAAlong-token-0123456789abcdefgh", token_type: "bearer", expires_in: 5184000 }));
-    const state = new URL((await request("/admin/oauth/start", { headers: { Cookie: cookie }, redirect: "manual" })).headers.get("Location")!).searchParams.get("state")!;
-    const res = await request(`/admin/oauth/callback?code=AQDcode%23_&state=${encodeURIComponent(state)}`, { headers: { Cookie: cookie }, redirect: "manual" });
+    g.on(/oauth\/access_token/, () => ({
+      data: [
+        { access_token: "IGAAshort-token-0123456789abcdef", user_id: IG_ID, permissions: "instagram_business_basic" },
+      ],
+    }));
+    g.on(/\/access_token\?grant_type=ig_exchange_token/, () => ({
+      access_token: "IGAAlong-token-0123456789abcdefgh",
+      token_type: "bearer",
+      expires_in: 5184000,
+    }));
+    const state = new URL(
+      (await request("/admin/oauth/start", { headers: { Cookie: cookie }, redirect: "manual" })).headers.get(
+        "Location",
+      )!,
+    ).searchParams.get("state")!;
+    const res = await request(`/admin/oauth/callback?code=AQDcode%23_&state=${encodeURIComponent(state)}`, {
+      headers: { Cookie: cookie },
+      redirect: "manual",
+    });
     expect(decodeURIComponent(res.headers.get("Location")!)).toContain("Connected @shop_account");
     const exchange = g.calls.find((c) => c.url.pathname.endsWith("/oauth/access_token"))!;
     expect(exchange.url.origin).toBe("https://oauth.test");
@@ -239,7 +313,10 @@ describe("OAuth with Instagram Login", () => {
   it("callback refuses a bad state", async () => {
     const { cookie } = await login();
     const g = mockGraph();
-    const res = await request("/admin/oauth/callback?code=x&state=forged", { headers: { Cookie: cookie }, redirect: "manual" });
+    const res = await request("/admin/oauth/callback?code=x&state=forged", {
+      headers: { Cookie: cookie },
+      redirect: "manual",
+    });
     expect(decodeURIComponent(res.headers.get("Location")!)).toContain("state invalid");
     expect(g.calls).toEqual([]);
   });
@@ -250,10 +327,16 @@ describe("token refresh (cron)", () => {
     await connect();
     const g = mockGraph();
     expect(await refreshTokenIfNeeded(testEnv)).toBe("refreshed in the last day");
-    await testEnv.DB.prepare("UPDATE settings SET value = ? WHERE key = 'token_refreshed'").bind(String(Date.now() - 2 * 86_400_000)).run();
-    await testEnv.DB.prepare("INSERT INTO settings (key, value, updated) VALUES ('token_expires', ?, 0)").bind(String(Date.now() + 30 * 86_400_000)).run();
+    await testEnv.DB.prepare("UPDATE settings SET value = ? WHERE key = 'token_refreshed'")
+      .bind(String(Date.now() - 2 * 86_400_000))
+      .run();
+    await testEnv.DB.prepare("INSERT INTO settings (key, value, updated) VALUES ('token_expires', ?, 0)")
+      .bind(String(Date.now() + 30 * 86_400_000))
+      .run();
     expect(await refreshTokenIfNeeded(testEnv)).toBe("fresh enough");
-    await testEnv.DB.prepare("UPDATE settings SET value = ? WHERE key = 'token_expires'").bind(String(Date.now() + 10 * 86_400_000)).run();
+    await testEnv.DB.prepare("UPDATE settings SET value = ? WHERE key = 'token_expires'")
+      .bind(String(Date.now() + 10 * 86_400_000))
+      .run();
     expect(await refreshTokenIfNeeded(testEnv)).toBe("refreshed");
     expect(g.calls[0].url.pathname).toBe("/refresh_access_token");
     expect((await getAccount(testEnv))?.token).toBe("IGAArefreshed0000000000000000000000");
@@ -262,7 +345,9 @@ describe("token refresh (cron)", () => {
     await connect();
     await testEnv.DB.prepare("UPDATE settings SET value = '0' WHERE key = 'token_refreshed'").run();
     const g = mockGraph();
-    g.on(/refresh_access_token/, () => Response.json({ error: { message: "Session expired", code: 190 } }, { status: 400 }));
+    g.on(/refresh_access_token/, () =>
+      Response.json({ error: { message: "Session expired", code: 190 } }, { status: 400 }),
+    );
     expect(await refreshTokenIfNeeded(testEnv)).toContain("refresh failed");
     expect(await getSetting(testEnv, "token_error")).toContain("Session expired");
   });

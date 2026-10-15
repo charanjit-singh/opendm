@@ -33,7 +33,14 @@ interface TextFieldProps {
 export function TextField({ id, label, value, onInput, type = "text", ...rest }: TextFieldProps) {
   return (
     <Field id={id} label={label}>
-      <input class="input" id={id} type={type as "text"} value={value} onInput={(e) => onInput(e.currentTarget.value)} {...rest} />
+      <input
+        class="input"
+        id={id}
+        type={type as "text"}
+        value={value}
+        onInput={(e) => onInput(e.currentTarget.value)}
+        {...rest}
+      />
     </Field>
   );
 }
@@ -49,7 +56,13 @@ interface TextAreaFieldProps {
 export function TextAreaField({ id, label, value, onInput, placeholder }: TextAreaFieldProps) {
   return (
     <Field id={id} label={label}>
-      <textarea class="textarea" id={id} value={value} placeholder={placeholder} onInput={(e) => onInput(e.currentTarget.value)} />
+      <textarea
+        class="textarea"
+        id={id}
+        value={value}
+        placeholder={placeholder}
+        onInput={(e) => onInput(e.currentTarget.value)}
+      />
     </Field>
   );
 }

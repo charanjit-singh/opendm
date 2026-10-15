@@ -11,7 +11,10 @@ export const webhookRoutes = new Hono<AppEnv>();
 /** Meta calls this once when the webhook is saved in the app dashboard. */
 webhookRoutes.get("/", async (c) => {
   const q = c.req.query();
-  const valid = q["hub.mode"] === "subscribe" && !!c.env.VERIFY_TOKEN && (await safeEqual(q["hub.verify_token"] ?? "", c.env.VERIFY_TOKEN));
+  const valid =
+    q["hub.mode"] === "subscribe" &&
+    !!c.env.VERIFY_TOKEN &&
+    (await safeEqual(q["hub.verify_token"] ?? "", c.env.VERIFY_TOKEN));
   return valid ? c.text(q["hub.challenge"] ?? "") : c.text("Forbidden", 403);
 });
 
@@ -28,7 +31,9 @@ webhookRoutes.post("/", async (c) => {
   }
   // Answer Meta right away (it retries slow endpoints) and do the work afterwards.
   c.executionCtx.waitUntil(
-    handleWebhook(c.env, payload).catch((e: Error) => logEvent(c.env, { kind: "system", status: "error", error: `webhook handler: ${e.message}` })),
+    handleWebhook(c.env, payload).catch((e: Error) =>
+      logEvent(c.env, { kind: "system", status: "error", error: `webhook handler: ${e.message}` }),
+    ),
   );
   return c.text("EVENT_RECEIVED");
 });

@@ -43,7 +43,11 @@ export function App() {
   const [flash, setFlash] = useState<Flash | null>(null);
 
   const notify = (text: string, kind: Flash["kind"] = "ok") => setFlash({ text, kind });
-  const refreshStatus = () => api.status().then(setStatus).catch(() => {});
+  const refreshStatus = () =>
+    api
+      .status()
+      .then(setStatus)
+      .catch(() => {});
 
   useEffect(() => {
     onUnauthorized(() => setSession("signed-out"));
@@ -66,7 +70,16 @@ export function App() {
 
   if (session === "checking") return null;
   if (session === "signed-out") {
-    return <LoginForm onLoggedIn={() => api.status().then((s) => { setStatus(s); setSession("signed-in"); })} />;
+    return (
+      <LoginForm
+        onLoggedIn={() =>
+          api.status().then((s) => {
+            setStatus(s);
+            setSession("signed-in");
+          })
+        }
+      />
+    );
   }
   if (!status) return null;
 
@@ -94,7 +107,11 @@ export function App() {
             </button>
           ))}
         </nav>
-        {flash && <Notice kind={flash.kind} id="flash">{flash.text}</Notice>}
+        {flash && (
+          <Notice kind={flash.kind} id="flash">
+            {flash.text}
+          </Notice>
+        )}
         {tab === "overview" && <OverviewTab status={status} refresh={refreshStatus} notify={notify} />}
         {tab === "rules" && <RulesTab status={status} refresh={refreshStatus} notify={notify} />}
         {tab === "test" && <DryRunTab notify={notify} />}

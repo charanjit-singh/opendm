@@ -25,10 +25,9 @@ export async function setSetting(env: Env, key: string, value: string | null): P
     await env.DB.prepare("DELETE FROM settings WHERE key = ?").bind(key).run();
     return;
   }
-  await env.DB
-    .prepare(
-      "INSERT INTO settings (key, value, updated) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated = excluded.updated",
-    )
+  await env.DB.prepare(
+    "INSERT INTO settings (key, value, updated) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated = excluded.updated",
+  )
     .bind(key, value, Date.now())
     .run();
 }

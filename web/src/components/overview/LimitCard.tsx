@@ -25,7 +25,15 @@ export function LimitCard({ status, refresh, notify }: TabProps & { status: Stat
         hour: {status.sentLastHour}.
       </p>
       <div class="row row--end">
-        <TextField id="hourly" type="number" min={1} max={5000} label="Max sends per hour" value={value} onInput={setValue} />
+        <TextField
+          id="hourly"
+          type="number"
+          min={1}
+          max={5000}
+          label="Max sends per hour"
+          value={value}
+          onInput={setValue}
+        />
         <div>
           <button type="button" class="btn btn--ghost" id="save-limit" onClick={save}>
             Save limit

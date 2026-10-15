@@ -11,7 +11,11 @@ import { Notice } from "../ui/Notice";
 export function AccountCard({ status, refresh, notify }: TabProps & { status: Status }) {
   return (
     <Card title="Instagram account">
-      {status.connected ? <Connected status={status} refresh={refresh} notify={notify} /> : <ConnectForm status={status} refresh={refresh} notify={notify} />}
+      {status.connected ? (
+        <Connected status={status} refresh={refresh} notify={notify} />
+      ) : (
+        <ConnectForm status={status} refresh={refresh} notify={notify} />
+      )}
     </Card>
   );
 }
@@ -32,7 +36,9 @@ function Connected({ status, refresh, notify }: TabProps & { status: Status }) {
       </p>
       {status.tokenError && <Notice kind="error">Token problem: {status.tokenError} Reconnect below.</Notice>}
       {status.tokenExpires && (
-        <p class="hint">Token expires {new Date(status.tokenExpires).toLocaleDateString()} (refreshed automatically).</p>
+        <p class="hint">
+          Token expires {new Date(status.tokenExpires).toLocaleDateString()} (refreshed automatically).
+        </p>
       )}
       <p>
         <button type="button" class="btn" id="subscribe" onClick={subscribe}>
@@ -78,13 +84,24 @@ function ConnectForm({ status, refresh, notify }: TabProps & { status: Status })
       ) : (
         <p class="hint">Paste an Instagram user access token (Meta app, Instagram Login, API setup, Generate token).</p>
       )}
-      <TextField id="token" type="password" label="Access token" placeholder="IGAA..." value={token} onInput={setToken} />
+      <TextField
+        id="token"
+        type="password"
+        label="Access token"
+        placeholder="IGAA..."
+        value={token}
+        onInput={setToken}
+      />
       <p>
         <button type="button" class="btn" id="connect" disabled={busy} onClick={connect}>
           Connect
         </button>
       </p>
-      {error && <Notice kind="error" id="connect-err">{error}</Notice>}
+      {error && (
+        <Notice kind="error" id="connect-err">
+          {error}
+        </Notice>
+      )}
     </>
   );
 }

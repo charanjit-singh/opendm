@@ -1,8 +1,9 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 // Thin client for the Instagram API with Instagram Login (graph.instagram.com).
 // https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/
-import { scrub } from "../lib/crypto";
+
 import type { Account } from "../db/account";
+import { scrub } from "../lib/crypto";
 import type { Env } from "../types/env";
 
 export const GRAPH_VERSION = "v25.0";
@@ -10,7 +11,9 @@ export const DEFAULT_GRAPH = "https://graph.instagram.com";
 export const DEFAULT_OAUTH = "https://api.instagram.com";
 
 export type ErrorKind = "retry" | "token" | "permission" | "final";
-export type GraphResult<T = any> = { ok: true; data: T } | { ok: false; status: number; code?: number; kind: ErrorKind; error: string };
+export type GraphResult<T = unknown> =
+  | { ok: true; data: T }
+  | { ok: false; status: number; code?: number; kind: ErrorKind; error: string };
 
 interface GraphError {
   code?: number;
@@ -34,37 +37,80 @@ export function classify(status: number, err?: GraphError): ErrorKind {
   return "final";
 }
 
+interface GraphBody {
+  error?: GraphError;
+}
+
+/** One HTTP call to the Graph API. Failures come back as a classified result, never as an exception. */
+async function graphFetch<T>(url: string, init: RequestInit, token: string | null): Promise<GraphResult<T>> {
+  const headers = new Headers(init.headers);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  let response: Response;
+  try {
+    response = await fetch(url, { ...init, headers });
+  } catch (e) {
+    return { ok: false, status: 0, kind: "retry", error: scrub(`network error: ${(e as Error).message}`, [token]) };
+  }
+  const data = (await response.json().catch(() => ({}))) as GraphBody & T;
+  if (response.ok && !data.error) return { ok: true, data };
+  const error = data.error ?? {};
+  return {
+    ok: false,
+    status: response.status,
+    code: error.code,
+    kind: classify(response.status, error),
+    error: scrub(error.message ?? `HTTP ${response.status}`, [token]),
+  };
+}
+
+const trimSlash = (base: string) => base.replace(/\/$/, "");
+
+export interface MeResponse {
+  user_id?: string;
+  id?: string;
+  username?: string;
+}
+
+export interface ProfileResponse {
+  name?: string;
+  username?: string;
+  /** Only present when Meta allows the follow check for this user. */
+  is_user_follow_business?: boolean;
+}
+
+export interface TokenResponse {
+  access_token: string;
+  expires_in: number;
+}
+
+/** Client for the connected account's Instagram token. */
 export class Graph {
   constructor(
-    private token: string,
-    private base = DEFAULT_GRAPH,
-    private oauthBase = DEFAULT_OAUTH,
+    private readonly token: string,
+    private readonly base = DEFAULT_GRAPH,
   ) {}
 
-  private versioned = (path: string) => `${this.base.replace(/\/$/, "")}/${GRAPH_VERSION}${path}`;
+  private url = (path: string) => `${trimSlash(this.base)}/${GRAPH_VERSION}${path}`;
 
-  private async call<T = any>(url: string, init: RequestInit = {}, bearer = true): Promise<GraphResult<T>> {
-    const headers = new Headers(init.headers);
-    if (bearer) headers.set("Authorization", `Bearer ${this.token}`);
-    let res: Response;
-    try {
-      res = await fetch(url, { ...init, headers });
-    } catch (e) {
-      return { ok: false, status: 0, kind: "retry", error: scrub(`network error: ${(e as Error).message}`, [this.token]) };
-    }
-    const data: any = await res.json().catch(() => ({}));
-    if (res.ok && !data?.error) return { ok: true, data };
-    const err: GraphError = data?.error ?? {};
-    return { ok: false, status: res.status, code: err.code, kind: classify(res.status, err), error: scrub(err.message ?? `HTTP ${res.status}`, [this.token]) };
+  private get<T>(path: string) {
+    return graphFetch<T>(this.url(path), {}, this.token);
   }
 
-  private post(path: string, body: unknown) {
-    return this.call(this.versioned(path), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  private post(path: string, body?: unknown) {
+    return graphFetch<unknown>(
+      this.url(path),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      },
+      this.token,
+    );
   }
 
-  /** The account behind the token: { user_id, username }. */
+  /** The account behind the token. */
   me() {
-    return this.call<{ user_id?: string; id?: string; username?: string }>(this.versioned("/me?fields=user_id,username,account_type"));
+    return this.get<MeResponse>("/me?fields=user_id,username,account_type");
   }
 
   /** One private reply per comment, within 7 days of the comment. */
@@ -81,36 +127,62 @@ export class Graph {
     return this.post(`/${commentId}/replies`, { message: text });
   }
 
-  /** Profile of someone who messaged us. is_user_follow_business is only present when Meta allows it. */
+  /** Profile of someone who messaged us. */
   profile(userId: string) {
-    return this.call<{ name?: string; username?: string; is_user_follow_business?: boolean }>(this.versioned(`/${userId}?fields=name,username,is_user_follow_business`));
+    return this.get<ProfileResponse>(`/${userId}?fields=name,username,is_user_follow_business`);
   }
 
   /** Subscribes the app to this account's comments + messages webhooks. */
   subscribe(igId: string) {
-    return this.call(this.versioned(`/${igId}/subscribed_apps?subscribed_fields=comments,messages`), { method: "POST" });
+    return this.post(`/${igId}/subscribed_apps?subscribed_fields=comments,messages`);
   }
 
-  /** Extends a long-lived token by another 60 days (must be 24h+ old). */
+  /** Extends a long-lived token by another 60 days (the token must be 24h+ old). */
   refresh() {
-    return this.call<{ access_token: string; expires_in: number }>(`${this.base.replace(/\/$/, "")}/refresh_access_token?grant_type=ig_refresh_token&access_token=${encodeURIComponent(this.token)}`, {}, false);
-  }
-
-  /** OAuth: authorization code -> short-lived token. */
-  static async exchangeCode(oauthBase: string, p: { clientId: string; clientSecret: string; redirectUri: string; code: string }): Promise<GraphResult<{ access_token: string; user_id: string | number }>> {
-    const form = new URLSearchParams({ client_id: p.clientId, client_secret: p.clientSecret, grant_type: "authorization_code", redirect_uri: p.redirectUri, code: p.code });
-    const g = new Graph("", DEFAULT_GRAPH, oauthBase);
-    const r = await g.call<any>(`${oauthBase.replace(/\/$/, "")}/oauth/access_token`, { method: "POST", body: form }, false);
-    return r.ok ? { ok: true, data: r.data?.data?.[0] ?? r.data } : r;
-  }
-
-  /** OAuth: short-lived token -> long-lived (60 day) token. */
-  static async longLived(base: string, shortToken: string, clientSecret: string): Promise<GraphResult<{ access_token: string; expires_in: number }>> {
-    const g = new Graph(shortToken, base);
-    return g.call(`${base.replace(/\/$/, "")}/access_token?grant_type=ig_exchange_token&client_secret=${encodeURIComponent(clientSecret)}&access_token=${encodeURIComponent(shortToken)}`, {}, false);
+    const query = new URLSearchParams({ grant_type: "ig_refresh_token", access_token: this.token });
+    return graphFetch<TokenResponse>(`${trimSlash(this.base)}/refresh_access_token?${query}`, {}, null);
   }
 }
 
-/** A client for the connected account, honouring the GRAPH_BASE / OAUTH_BASE overrides used by tests. */
+export interface CodeExchange {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+  code: string;
+}
+
+/** OAuth: authorization code -> short-lived token. */
+export async function exchangeCode(oauthBase: string, p: CodeExchange) {
+  const form = new URLSearchParams({
+    client_id: p.clientId,
+    client_secret: p.clientSecret,
+    grant_type: "authorization_code",
+    redirect_uri: p.redirectUri,
+    code: p.code,
+  });
+  type Response = {
+    access_token: string;
+    user_id: string | number;
+    data?: { access_token: string; user_id: string | number }[];
+  };
+  const result = await graphFetch<Response>(
+    `${trimSlash(oauthBase)}/oauth/access_token`,
+    { method: "POST", body: form },
+    null,
+  );
+  return result.ok ? ({ ok: true, data: result.data.data?.[0] ?? result.data } as const) : result;
+}
+
+/** OAuth: short-lived token -> long-lived (60 day) token. */
+export function exchangeForLongLived(base: string, shortToken: string, clientSecret: string) {
+  const query = new URLSearchParams({
+    grant_type: "ig_exchange_token",
+    client_secret: clientSecret,
+    access_token: shortToken,
+  });
+  return graphFetch<TokenResponse>(`${trimSlash(base)}/access_token?${query}`, {}, null);
+}
+
+/** A client for the connected account, honouring the GRAPH_BASE override used by tests. */
 export const graphClientFor = (env: Env, account: Account): Graph =>
-  new Graph(account.token, env.GRAPH_BASE || DEFAULT_GRAPH, env.OAUTH_BASE || DEFAULT_OAUTH);
+  new Graph(account.token, env.GRAPH_BASE || DEFAULT_GRAPH);

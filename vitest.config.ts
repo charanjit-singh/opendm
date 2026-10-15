@@ -7,7 +7,15 @@ export default defineConfig({
     cloudflareTest({
       wrangler: { configPath: "./wrangler.jsonc" },
       miniflare: {
-        bindings: { ADMIN_PASSWORD: "test-password", SESSION_SECRET: "test-session-secret-0123456789abcdef", VERIFY_TOKEN: "verify-me", INSTAGRAM_APP_SECRET: "app-secret", INSTAGRAM_APP_ID: "1234567890", GRAPH_BASE: "https://graph.test", OAUTH_BASE: "https://oauth.test" },
+        bindings: {
+          ADMIN_PASSWORD: "test-password",
+          SESSION_SECRET: "test-session-secret-0123456789abcdef",
+          VERIFY_TOKEN: "verify-me",
+          INSTAGRAM_APP_SECRET: "app-secret",
+          INSTAGRAM_APP_ID: "1234567890",
+          GRAPH_BASE: "https://graph.test",
+          OAUTH_BASE: "https://oauth.test",
+        },
       },
     }),
   ],

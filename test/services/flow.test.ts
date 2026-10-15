@@ -1,6 +1,20 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { describe, expect, it } from "vitest";
-import { advance, DEFAULT_FLOW, extractEmail, fill, isNo, isYes, pickReply, resolveFlow, start, timeoutFallback, type ConvState, type Deps, type Flow } from "../../src/services/flow";
+import {
+  advance,
+  type ConvState,
+  DEFAULT_FLOW,
+  type Deps,
+  extractEmail,
+  type Flow,
+  fill,
+  isNo,
+  isYes,
+  pickReply,
+  resolveFlow,
+  start,
+  timeoutFallback,
+} from "../../src/services/flow";
 
 const vars = { name: "Sam", username: "sam", keyword: "GUIDE", link: "https://example.com/g", account: "shop" };
 const t0 = 1_000_000_000_000;
@@ -31,7 +45,15 @@ describe("placeholders", () => {
 
 describe("resolveFlow", () => {
   it("keeps defaults, validates types and clamps numbers", () => {
-    const f = resolveFlow({ followMaxTries: 99, followTimeoutMin: 0, askEmail: "weird", followGiveUp: "stop", openerText: "  Hi  ", deliverText: "", nope: 1 });
+    const f = resolveFlow({
+      followMaxTries: 99,
+      followTimeoutMin: 0,
+      askEmail: "weird",
+      followGiveUp: "stop",
+      openerText: "  Hi  ",
+      deliverText: "",
+      nope: 1,
+    });
     expect(f.followMaxTries).toBe(5);
     expect(f.followTimeoutMin).toBe(2);
     expect(f.askEmail).toBe(DEFAULT_FLOW.askEmail);
@@ -59,7 +81,9 @@ describe("start", () => {
   it("sends the opener when the flow has gates or an opener", () => {
     const o = start(flow(), vars);
     expect(o.state.step).toBe("opened");
-    expect(o.messages).toEqual(["Hey Sam! Saw your comment. Want the link? Just reply yes and I'll send it right here."]);
+    expect(o.messages).toEqual([
+      "Hey Sam! Saw your comment. Want the link? Just reply yes and I'll send it right here.",
+    ]);
   });
   it("sends the link straight away with no opener and no gates", () => {
     const o = start(flow({ opener: false, requireFollow: false, askEmail: "off" }), vars);

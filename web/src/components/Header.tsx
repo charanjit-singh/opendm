@@ -10,7 +10,10 @@ interface HeaderProps {
 
 export function Header({ status, onToggle, onLogout }: HeaderProps) {
   const connection = status.connected
-    ? { text: `@${status.username ?? status.igId} connected`, tone: status.tokenError ? ("warn" as const) : ("ok" as const) }
+    ? {
+        text: `@${status.username ?? status.igId} connected`,
+        tone: status.tokenError ? ("warn" as const) : ("ok" as const),
+      }
     : { text: "Not connected", tone: "error" as const };
   return (
     <header class="header">
@@ -22,7 +25,12 @@ export function Header({ status, onToggle, onLogout }: HeaderProps) {
       </Pill>
       <div class="spacer" />
       <label class="switch">
-        <input type="checkbox" id="enabled" checked={status.enabled} onChange={(e) => onToggle(e.currentTarget.checked)} />
+        <input
+          type="checkbox"
+          id="enabled"
+          checked={status.enabled}
+          onChange={(e) => onToggle(e.currentTarget.checked)}
+        />
         <span id="enabled-label">{status.enabled ? "Automation on" : "Automation off"}</span>
       </label>
       <button type="button" class="btn btn--ghost" id="logout" onClick={onLogout}>

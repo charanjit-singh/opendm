@@ -6,7 +6,7 @@ import { saveAccount } from "../db/account";
 import { makeToken, readToken } from "../lib/crypto";
 import { SESSION_COOKIE } from "../lib/http";
 import { ApiError } from "../lib/validate";
-import { DEFAULT_GRAPH, DEFAULT_OAUTH, Graph } from "../services/graph";
+import { DEFAULT_GRAPH, DEFAULT_OAUTH, exchangeCode, exchangeForLongLived, Graph } from "../services/graph";
 import type { AppEnv } from "../types/app";
 
 export const oauthRoutes = new Hono<AppEnv>();
@@ -41,14 +41,14 @@ oauthRoutes.get("/callback", async (c) => {
   if (!code) return backToDashboard(`Instagram said: ${c.req.query("error_description") ?? "no code"}`);
 
   const graphBase = c.env.GRAPH_BASE || DEFAULT_GRAPH;
-  const short = await Graph.exchangeCode(c.env.OAUTH_BASE || DEFAULT_OAUTH, {
+  const short = await exchangeCode(c.env.OAUTH_BASE || DEFAULT_OAUTH, {
     clientId: c.env.INSTAGRAM_APP_ID ?? "",
     clientSecret: c.env.INSTAGRAM_APP_SECRET,
     redirectUri: new URL("/admin/oauth/callback", c.req.url).href,
     code,
   });
   if (!short.ok) return backToDashboard(`Code exchange failed: ${short.error}`);
-  const long = await Graph.longLived(graphBase, short.data.access_token, c.env.INSTAGRAM_APP_SECRET);
+  const long = await exchangeForLongLived(graphBase, short.data.access_token, c.env.INSTAGRAM_APP_SECRET);
   const token = long.ok ? long.data.access_token : short.data.access_token;
   const me = await new Graph(token, graphBase).me();
   if (!me.ok) return backToDashboard(`Could not read the account: ${me.error}`);

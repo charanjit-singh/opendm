@@ -33,8 +33,9 @@ export const DEFAULT_FLOW: Flow = {
   opener: true,
   openerText: "Hey {name}! Saw your comment. Want the link? Just reply yes and I'll send it right here.",
   requireFollow: true,
-  followText: "One favor first: follow @{account} here https://www.instagram.com/{account}\n\nThen reply \"done\" and I'll send it right over.",
-  followRetryText: "Hmm, I can't see the follow yet. Follow @{account}, then reply \"done\".",
+  followText:
+    'One favor first: follow @{account} here https://www.instagram.com/{account}\n\nThen reply "done" and I\'ll send it right over.',
+  followRetryText: 'Hmm, I can\'t see the follow yet. Follow @{account}, then reply "done".',
   followMaxTries: 2,
   followGiveUp: "send",
   followStopText: "No problem. Come back any time!",
@@ -42,14 +43,15 @@ export const DEFAULT_FLOW: Flow = {
   followTimeoutText: "No worries if not, here's the link anyway:\n{link}",
   askEmail: "off",
   emailText: "Last thing: what's your email? I'll send updates now and then (or say \"no\" to skip).",
-  emailRetryText: "That doesn't look like an email address. Try again, or say \"no\" to skip.",
+  emailRetryText: 'That doesn\'t look like an email address. Try again, or say "no" to skip.',
   emailThanks: "Got it, thanks!",
   emailStopText: "No problem. Come back any time!",
   deliverText: "Here you go:\n{link}\nIf you get stuck, just reply here.",
 };
 
 const MAX_TEXT = 900;
-const numberIn = (v: unknown, def: number, lo: number, hi: number) => (Number.isFinite(Number(v)) && v !== "" && v !== null ? Math.min(hi, Math.max(lo, Math.round(Number(v)))) : def);
+const numberIn = (v: unknown, def: number, lo: number, hi: number) =>
+  Number.isFinite(Number(v)) && v !== "" && v !== null ? Math.min(hi, Math.max(lo, Math.round(Number(v)))) : def;
 
 /** Only known keys with the right types; empty text falls back to the default. */
 export function resolveFlow(raw: unknown): Flow {
@@ -104,12 +106,39 @@ export interface Outcome {
 }
 
 const NO = new Set(["no", "nah", "nope", "skip", "later", "n", "na", "never", "pass", "dont", "nahi", "non", "nein"]);
-const YES = new Set(["yes", "yess", "yeah", "yea", "yep", "yup", "ya", "y", "sure", "ok", "okay", "pls", "please", "plz", "send", "go", "done", "ready", "want", "followed", "following", "haan"]);
+const YES = new Set([
+  "yes",
+  "yess",
+  "yeah",
+  "yea",
+  "yep",
+  "yup",
+  "ya",
+  "y",
+  "sure",
+  "ok",
+  "okay",
+  "pls",
+  "please",
+  "plz",
+  "send",
+  "go",
+  "done",
+  "ready",
+  "want",
+  "followed",
+  "following",
+  "haan",
+]);
 
 /** A "no thanks": a short message with a no-word in it, or a thumbs-down. */
 export function isNo(text: string): boolean {
   const w = words(text);
-  return (w.length <= 5 && w.some((x) => NO.has(x))) || /not now|no thanks|not interested|maybe later|don'?t/i.test(text) || /👎|🙅/u.test(text);
+  return (
+    (w.length <= 5 && w.some((x) => NO.has(x))) ||
+    /not now|no thanks|not interested|maybe later|don'?t/i.test(text) ||
+    /👎|🙅/u.test(text)
+  );
 }
 
 export function isYes(text: string): boolean {
@@ -125,7 +154,12 @@ export function extractEmail(text: string): string | null {
 
 const needsOpener = (f: Flow) => f.opener || f.requireFollow || f.askEmail !== "off";
 
-const out = (state: Partial<ConvState> & { step: Step }, base: ConvState, messages: string[], note: string): Outcome => ({ state: { ...base, ...state }, messages, note });
+const out = (
+  state: Partial<ConvState> & { step: Step },
+  base: ConvState,
+  messages: string[],
+  note: string,
+): Outcome => ({ state: { ...base, ...state }, messages, note });
 
 /** A comment matched: the private reply. With gates configured the opener always comes first (their tap opens the 24h window). */
 export function start(flow: Flow, vars: Vars): Outcome {
@@ -139,12 +173,18 @@ const deliver = (flow: Flow, vars: Vars, base: ConvState, note: string, pre: str
 
 /** Past the follow gate: ask for the email, or deliver. */
 function afterFollow(flow: Flow, vars: Vars, s: ConvState, note: string): Outcome {
-  if (flow.askEmail !== "off") return out({ step: "awaiting_email", tries: 0 }, s, [fill(flow.emailText, vars)], `${note}; email asked`);
+  if (flow.askEmail !== "off")
+    return out({ step: "awaiting_email", tries: 0 }, s, [fill(flow.emailText, vars)], `${note}; email asked`);
   return deliver(flow, vars, s, `${note}; link sent`);
 }
 
 function askFollow(flow: Flow, vars: Vars, s: ConvState, deps: Deps): Outcome {
-  return out({ step: "awaiting_follow", tries: 0, followAskedAt: deps.now }, s, [fill(flow.followText, vars)], "follow asked");
+  return out(
+    { step: "awaiting_follow", tries: 0, followAskedAt: deps.now },
+    s,
+    [fill(flow.followText, vars)],
+    "follow asked",
+  );
 }
 
 /** The user wrote in: move the conversation one step. */
@@ -159,20 +199,46 @@ export async function advance(state: ConvState, text: string, flow: Flow, vars: 
       const following = await deps.checkFollow();
       if (following === true) return afterFollow(flow, vars, state, "follow verified");
       // Unknown (the API can't tell): take their word when they say they followed.
-      if (following === null && isYes(text) && !isNo(text)) return afterFollow(flow, vars, state, "follow unverified, user said done");
+      if (following === null && isYes(text) && !isNo(text))
+        return afterFollow(flow, vars, state, "follow unverified, user said done");
       const tries = state.tries + 1;
       if (tries >= flow.followMaxTries) {
-        if (flow.followGiveUp === "send") return deliver(flow, vars, { ...state, tries }, "follow gate given up, link sent anyway");
-        return out({ step: "stopped", tries }, state, flow.followStopText ? [fill(flow.followStopText, vars)] : [], "follow gate given up, stopped");
+        if (flow.followGiveUp === "send")
+          return deliver(flow, vars, { ...state, tries }, "follow gate given up, link sent anyway");
+        return out(
+          { step: "stopped", tries },
+          state,
+          flow.followStopText ? [fill(flow.followStopText, vars)] : [],
+          "follow gate given up, stopped",
+        );
       }
-      return out({ step: "awaiting_follow", tries }, state, [fill(flow.followRetryText, vars)], `not following yet (${tries}/${flow.followMaxTries})`);
+      return out(
+        { step: "awaiting_follow", tries },
+        state,
+        [fill(flow.followRetryText, vars)],
+        `not following yet (${tries}/${flow.followMaxTries})`,
+      );
     }
     case "awaiting_email": {
       const email = extractEmail(text);
-      if (email) return deliver(flow, vars, { ...state, email }, "email captured, link sent", flow.emailThanks ? [fill(flow.emailThanks, vars)] : []);
-      if (flow.askEmail === "optional" || isNo(text) && flow.askEmail !== "required") return deliver(flow, vars, state, "email skipped, link sent");
+      if (email)
+        return deliver(
+          flow,
+          vars,
+          { ...state, email },
+          "email captured, link sent",
+          flow.emailThanks ? [fill(flow.emailThanks, vars)] : [],
+        );
+      if (flow.askEmail === "optional" || (isNo(text) && flow.askEmail !== "required"))
+        return deliver(flow, vars, state, "email skipped, link sent");
       const tries = state.tries + 1;
-      if (tries >= 3) return out({ step: "stopped", tries }, state, flow.emailStopText ? [fill(flow.emailStopText, vars)] : [], "email required, not given, stopped");
+      if (tries >= 3)
+        return out(
+          { step: "stopped", tries },
+          state,
+          flow.emailStopText ? [fill(flow.emailStopText, vars)] : [],
+          "email required, not given, stopped",
+        );
       return out({ step: "awaiting_email", tries }, state, [fill(flow.emailRetryText, vars)], "email asked again");
     }
     default:
@@ -195,4 +261,8 @@ export function pickReply(list: string[], last?: string | null, rnd: () => numbe
   return from.length ? from[Math.floor(rnd() * from.length)] : null;
 }
 
-export const DEFAULT_PUBLIC_REPLIES = ["Sent you a DM! Check your message requests if you don't see it.", "Just DM'd you! It may be in your message requests.", "Done, check your DMs!"];
+export const DEFAULT_PUBLIC_REPLIES = [
+  "Sent you a DM! Check your message requests if you don't see it.",
+  "Just DM'd you! It may be in your message requests.",
+  "Done, check your DMs!",
+];

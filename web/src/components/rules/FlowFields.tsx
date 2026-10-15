@@ -10,7 +10,12 @@ interface FlowFieldsProps {
 /** The conversation settings of a rule: opener, follow gate, email capture, final message. */
 export function FlowFields({ flow, onChange }: FlowFieldsProps) {
   const text = (key: keyof Flow, label: string) => (
-    <TextAreaField id={`fl-${key}`} label={label} value={String(flow[key])} onInput={(value) => onChange({ ...flow, [key]: value })} />
+    <TextAreaField
+      id={`fl-${key}`}
+      label={label}
+      value={String(flow[key])}
+      onInput={(value) => onChange({ ...flow, [key]: value })}
+    />
   );
   const number = (key: "followMaxTries" | "followTimeoutMin", label: string, min: number, max: number) => (
     <TextField
@@ -32,7 +37,11 @@ export function FlowFields({ flow, onChange }: FlowFieldsProps) {
       </Checkbox>
       {text("openerText", "Opener message")}
 
-      <Checkbox id="fl-requireFollow" checked={flow.requireFollow} onChange={(requireFollow) => onChange({ ...flow, requireFollow })}>
+      <Checkbox
+        id="fl-requireFollow"
+        checked={flow.requireFollow}
+        onChange={(requireFollow) => onChange({ ...flow, requireFollow })}
+      >
         Follow gate
       </Checkbox>
       {text("followText", "Follow request")}

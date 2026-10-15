@@ -35,7 +35,11 @@ export function LoginForm({ onLoggedIn }: { onLoggedIn: () => void }) {
         <p class="hint">Admin login</p>
         <form onSubmit={submit}>
           <TextField id="password" type="password" label="Password" value={password} onInput={setPassword} />
-          {error && <Notice kind="error" id="login-err">{error}</Notice>}
+          {error && (
+            <Notice kind="error" id="login-err">
+              {error}
+            </Notice>
+          )}
           <p>
             <button class="btn" id="login-btn" type="submit" disabled={busy}>
               Log in

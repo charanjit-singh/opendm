@@ -1,9 +1,16 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { classify } from "../../src/services/graph";
-import { backoffMs, dispatch, drainOutbox, hourlyLimit, MAX_ATTEMPTS, sentLastHour } from "../../src/services/send-queue";
 import { recentEvents } from "../../src/db/events";
 import { getSetting, setSetting } from "../../src/db/settings";
+import { classify } from "../../src/services/graph";
+import {
+  backoffMs,
+  dispatch,
+  drainOutbox,
+  hourlyLimit,
+  MAX_ATTEMPTS,
+  sentLastHour,
+} from "../../src/services/send-queue";
 import { addRule, commentEvent, connect, mockGraph, postWebhook, resetDb, testEnv } from "../support/helpers";
 
 beforeEach(async () => {
@@ -12,7 +19,10 @@ beforeEach(async () => {
   await connect();
 });
 
-const outbox = () => testEnv.DB.prepare("SELECT * FROM outbox ORDER BY id").all<any>().then((r) => r.results);
+const outbox = () =>
+  testEnv.DB.prepare("SELECT * FROM outbox ORDER BY id")
+    .all<any>()
+    .then((r) => r.results);
 const dm = (text: string, to = "u1") => dispatch(testEnv, { kind: "dm", userId: to, text, ctx: {} });
 
 describe("classify (Graph error handling)", () => {
@@ -95,7 +105,11 @@ describe("errors", () => {
   it("recovers when the retry succeeds", async () => {
     const g = mockGraph();
     let first = true;
-    g.on(/\/messages$/, () => (first ? ((first = false), Response.json({ error: { message: "try later", code: 2 } }, { status: 500 })) : undefined));
+    g.on(/\/messages$/, () => {
+      if (!first) return undefined;
+      first = false;
+      return Response.json({ error: { message: "try later", code: 2 } }, { status: 500 });
+    });
     expect(await dm("hi")).toBe("queued");
     await testEnv.DB.prepare("UPDATE outbox SET due = 0").run();
     await drainOutbox(testEnv);
@@ -105,7 +119,9 @@ describe("errors", () => {
 
   it("flags the account when the token is bad, and does not retry", async () => {
     const g = mockGraph();
-    g.on(/\/messages$/, () => Response.json({ error: { message: "Invalid OAuth access token.", code: 190 } }, { status: 401 }));
+    g.on(/\/messages$/, () =>
+      Response.json({ error: { message: "Invalid OAuth access token.", code: 190 } }, { status: 401 }),
+    );
     expect(await dm("hi")).toBe("error");
     expect(await getSetting(testEnv, "token_error")).toContain("Invalid OAuth access token");
     expect(await outbox()).toHaveLength(0);
@@ -113,7 +129,12 @@ describe("errors", () => {
 
   it("does not retry a final error such as a closed messaging window", async () => {
     const g = mockGraph();
-    g.on(/\/messages$/, () => Response.json({ error: { message: "This person isn't available right now.", code: 100, error_subcode: 2534014 } }, { status: 400 }));
+    g.on(/\/messages$/, () =>
+      Response.json(
+        { error: { message: "This person isn't available right now.", code: 100, error_subcode: 2534014 } },
+        { status: 400 },
+      ),
+    );
     expect(await dm("hi")).toBe("error");
     expect(await outbox()).toHaveLength(0);
   });
@@ -125,7 +146,12 @@ describe("errors", () => {
 
   it("never puts the token in the log", async () => {
     const g = mockGraph();
-    g.on(/\/messages$/, () => Response.json({ error: { message: "bad token IGAAtesttoken000000000000000000000000 x", code: 190 } }, { status: 401 }));
+    g.on(/\/messages$/, () =>
+      Response.json(
+        { error: { message: "bad token IGAAtesttoken000000000000000000000000 x", code: 190 } },
+        { status: 401 },
+      ),
+    );
     await dm("hi");
     const text = JSON.stringify(await recentEvents(testEnv, 10)) + (await getSetting(testEnv, "token_error"));
     expect(text).not.toContain("IGAAtesttoken");

@@ -19,10 +19,9 @@ export interface EventInput {
 const MAX_TEXT = 1000;
 
 export async function logEvent(env: Env, e: EventInput): Promise<void> {
-  await env.DB
-    .prepare(
-      "INSERT INTO events (ts, kind, status, ig_user, username, comment_id, rule_id, keyword, text, error) VALUES (?,?,?,?,?,?,?,?,?,?)",
-    )
+  await env.DB.prepare(
+    "INSERT INTO events (ts, kind, status, ig_user, username, comment_id, rule_id, keyword, text, error) VALUES (?,?,?,?,?,?,?,?,?,?)",
+  )
     .bind(
       Date.now(),
       e.kind,
@@ -47,8 +46,9 @@ export async function recentEvents(env: Env, limit: number, kind?: string): Prom
 
 /** Failed admin logins from one address since `sinceMs` (drives the login lockout). */
 export async function countFailedLogins(env: Env, ip: string, sinceMs: number): Promise<number> {
-  const row = await env.DB
-    .prepare("SELECT COUNT(*) AS n FROM events WHERE kind = 'auth' AND status = 'error' AND ig_user = ? AND ts > ?")
+  const row = await env.DB.prepare(
+    "SELECT COUNT(*) AS n FROM events WHERE kind = 'auth' AND status = 'error' AND ig_user = ? AND ts > ?",
+  )
     .bind(ip, sinceMs)
     .first<{ n: number }>();
   return row?.n ?? 0;
@@ -56,8 +56,9 @@ export async function countFailedLogins(env: Env, ip: string, sinceMs: number): 
 
 /** The keyword that started the conversation for a comment, read back from the log. */
 export async function keywordForComment(env: Env, commentId: string): Promise<string | null> {
-  const row = await env.DB
-    .prepare("SELECT keyword FROM events WHERE comment_id = ? AND keyword IS NOT NULL ORDER BY id LIMIT 1")
+  const row = await env.DB.prepare(
+    "SELECT keyword FROM events WHERE comment_id = ? AND keyword IS NOT NULL ORDER BY id LIMIT 1",
+  )
     .bind(commentId)
     .first<{ keyword: string }>();
   return row?.keyword ?? null;
@@ -65,7 +66,9 @@ export async function keywordForComment(env: Env, commentId: string): Promise<st
 
 /** True the first time a key is seen. Meta retries webhooks; each comment or message must act once. */
 export async function markProcessed(env: Env, key: string): Promise<boolean> {
-  const result = await env.DB.prepare("INSERT OR IGNORE INTO processed (key, ts) VALUES (?, ?)").bind(key, Date.now()).run();
+  const result = await env.DB.prepare("INSERT OR IGNORE INTO processed (key, ts) VALUES (?, ?)")
+    .bind(key, Date.now())
+    .run();
   return (result.meta.changes ?? 0) > 0;
 }
 

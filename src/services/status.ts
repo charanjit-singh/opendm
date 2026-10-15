@@ -13,8 +13,7 @@ export async function buildStatus(env: Env, origin: string): Promise<Status> {
   const account = await getAccount(env);
   const [rules, sent24h, steps] = await Promise.all([
     env.DB.prepare("SELECT COUNT(*) AS n FROM rules").first<{ n: number }>(),
-    env.DB
-      .prepare("SELECT COUNT(*) AS n FROM events WHERE kind IN ('comment','dm') AND status = 'sent' AND ts > ?")
+    env.DB.prepare("SELECT COUNT(*) AS n FROM events WHERE kind IN ('comment','dm') AND status = 'sent' AND ts > ?")
       .bind(Date.now() - DAY_MS)
       .first<{ n: number }>(),
     env.DB.prepare("SELECT step, COUNT(*) AS n FROM conversations GROUP BY step").all<{ step: string; n: number }>(),
