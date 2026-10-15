@@ -1,0 +1,19 @@
+README.md
+  s_246380a1268afa::t_77cc2fb13c2357 43-77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ce7439c1ad053dc23efce2e0357ceec0551adacc",
+  "prompts": {},
+  "sessions": {
+    "s_246380a1268afa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e14d0ab-cab0-46cc-8f58-f062b7aba45c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Charanjit Singh <charanjitdotsingh@gmail.com>"
+    }
+  }
+}
