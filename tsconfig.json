@@ -8,8 +8,10 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true
   },
-  "include": ["src", "test", "vitest.config.ts", "vite.config.ts"],
+  "include": ["src", "cli", "test", "vitest.config.ts", "vite.config.ts"],
   "exclude": ["web"]
 }

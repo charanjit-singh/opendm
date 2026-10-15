@@ -258,6 +258,16 @@ try {
     await page.waitForFunction(() => /Automation on/.test(document.getElementById("enabled-label").textContent));
     await page.screenshot({ path: "docs/dashboard.png", fullPage: true });
   });
+  await step("dark mode screenshots", async () => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.click('[data-tab="log"]');
+    await page.waitForFunction(() => /sam_real/.test(document.getElementById("log-body").innerText));
+    await page.screenshot({ path: "docs/log-dark.png", fullPage: true });
+    await page.click('[data-tab="overview"]');
+    await page.waitForSelector("#stats");
+    await page.screenshot({ path: "docs/dashboard-dark.png", fullPage: true });
+    await page.emulateMedia({ colorScheme: "light" });
+  });
   await step("the stored token never reaches the page", async () => {
     const html = await page.content();
     assert.ok(!html.includes("IGAAbrowser-token"));

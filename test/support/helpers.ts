@@ -1,6 +1,7 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { createExecutionContext, env, waitOnExecutionContext } from "cloudflare:test";
 import { vi } from "vitest";
+import { OpenDmClient } from "../../cli/client.ts";
 import { saveAccount } from "../../src/db/account";
 import { createRule } from "../../src/db/rules";
 import { ensureSchema, resetSchemaCache } from "../../src/db/schema";
@@ -196,4 +197,13 @@ export async function addRule(overrides: Record<string, unknown> = {}) {
     ...overrides,
   });
   return createRule(testEnv, values);
+}
+
+/** An OpenDM API client wired straight into the Worker, authenticated like the CLI/MCP server (bearer token). */
+export function workerClient(token: string = testEnv.ADMIN_PASSWORD) {
+  const viaWorker: typeof fetch = (input, init) => {
+    const url = new URL(String(input));
+    return request(url.pathname + url.search, init);
+  };
+  return new OpenDmClient("https://opendm.test", token, viaWorker);
 }

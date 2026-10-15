@@ -24,7 +24,9 @@
     "lint": "biome check .",
     "format": "biome check --write .",
     "db:migrate:local": "wrangler d1 migrations apply opendm --local",
-    "db:migrate:remote": "wrangler d1 migrations apply opendm --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply opendm --remote",
+    "cli": "node cli/opendm.ts",
+    "mcp": "node cli/mcp.ts"
   },
   "cloudflare": {
     "label": "OpenDM",
@@ -67,5 +69,9 @@
   },
   "engines": {
     "node": ">=22.18"
+  },
+  "bin": {
+    "opendm": "cli/opendm.ts",
+    "opendm-mcp": "cli/mcp.ts"
   }
 }

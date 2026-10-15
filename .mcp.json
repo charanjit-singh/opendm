@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "opendm": {
+      "command": "node",
+      "args": ["cli/mcp.ts"],
+      "env": {
+        "OPENDM_URL": "${OPENDM_URL}",
+        "OPENDM_TOKEN": "${OPENDM_TOKEN}"
+      }
+    }
+  }
+}

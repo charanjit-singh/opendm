@@ -2,9 +2,12 @@
 // End to end: real `wrangler dev` (workerd + local D1) talking to a local mock of the Instagram Graph API.
 // Posts signed webhook payloads and asserts the Graph calls the Worker makes.
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { createHmac } from "node:crypto";
 import { rmSync } from "node:fs";
+import { promisify } from "node:util";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { startMockGraph } from "./mock-graph.mjs";
 
 const PORT = 8788,
@@ -227,6 +230,40 @@ try {
         .slice(5)
         .some((m) => /example\.com\/guide/.test(m.body.message.text)),
     );
+  });
+  const cliEnv = { ...process.env, OPENDM_URL: BASE, OPENDM_TOKEN: vars.ADMIN_PASSWORD };
+  await step("CLI: `opendm status` and `opendm rules` talk to the running Worker", async () => {
+    const run = promisify(execFile);
+    const status = await run("node", ["cli/opendm.ts", "status"], { env: cliEnv });
+    assert.match(status.stdout, /Account: @e2e_shop \(connected\)/);
+    assert.match((await run("node", ["cli/opendm.ts", "rules"], { env: cliEnv })).stdout, /GUIDE/);
+  });
+  await step("MCP over stdio: create a flow in plain terms, dry-run it, then a real comment triggers it", async () => {
+    const mcp = new Client({ name: "e2e", version: "0" });
+    await mcp.connect(new StdioClientTransport({ command: "node", args: ["cli/mcp.ts"], env: cliEnv }));
+    try {
+      const created = await mcp.callTool({
+        name: "opendm_create_rule",
+        arguments: {
+          name: "Automation",
+          keywords: ["AUTOMATION"],
+          link: "https://example.com/automation",
+          requireFollow: true,
+        },
+      });
+      assert.ok(!created.isError, created.content[0].text);
+      const tested = await mcp.callTool({
+        name: "opendm_test_comment",
+        arguments: { comment: "AUTOMATION", replies: ["yes", "done"], following: "yes" },
+      });
+      assert.match(tested.content[0].text, /example\.com\/automation/);
+    } finally {
+      await mcp.close();
+    }
+    const before = messages().length;
+    await post(comment("c-mcp", "AUTOMATION"));
+    await until(() => messages().length > before, "the private reply for the MCP-created rule");
+    assert.deepEqual(messages().at(-1).body.recipient, { comment_id: "c-mcp" });
   });
   await step("the scheduled job runs cleanly", async () => {
     const r = await fetch(`${BASE}/cdn-cgi/local/scheduled?cron=*+*+*+*+*`);
