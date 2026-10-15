@@ -1,0 +1,109 @@
+e2e/browser.mjs
+  s_246380a1268afa::t_7072cb4d0f6489 112
+e2e/run.mjs
+  s_246380a1268afa::t_033ba4d565640f 49-52
+package.json
+  s_246380a1268afa::t_6b69b450334805 6,15-16,18-19,23-25,67-69
+src/db/events.ts
+  s_246380a1268afa::t_cd4fc891dbc65d 2,5
+src/db/rules.ts
+  s_246380a1268afa::t_1e4e5c6948bf9e 2-3,6-7
+src/services/dry-run.ts
+  s_246380a1268afa::t_192307b093b6bb 5
+src/services/status.ts
+  s_246380a1268afa::t_74422ff60a550d 4,12,36
+src/types/api.ts
+  s_246380a1268afa::t_61f8fe23ddf5bd 1-66
+tsconfig.json
+  s_246380a1268afa::t_ceb0e7268aa731 6-13,19-27
+vite.config.ts
+  s_246380a1268afa::t_affbdf95547140 1-18
+web/index.html
+  s_246380a1268afa::t_488ce396276ba5 1-14
+web/privacy.html
+  s_246380a1268afa::t_0a7c5c8d16730c 1-31
+web/public/favicon.svg
+  s_246380a1268afa::t_0f9497a3089cd1 1-7
+web/src/App.tsx
+  s_246380a1268afa::t_501b1e4e4748ee 1-106
+web/src/api.ts
+  s_246380a1268afa::t_2c151bf1169169 1-62
+web/src/components/Footer.tsx
+  s_246380a1268afa::t_a7d8ec3580e2a5 1-10
+web/src/components/Header.tsx
+  s_246380a1268afa::t_08105c6227319b 1-33
+web/src/components/LoginForm.tsx
+  s_246380a1268afa::t_7439075182e28e 1-48
+web/src/components/log/LogTab.tsx
+  s_246380a1268afa::t_d4e0a8f9db0cff 1-76
+web/src/components/overview/AccountCard.tsx
+  s_246380a1268afa::t_fb478e91ee58b7 1-90
+web/src/components/overview/LimitCard.tsx
+  s_246380a1268afa::t_56eedb7c87087f 1-37
+web/src/components/overview/OverviewTab.tsx
+  s_246380a1268afa::t_29e92f9c804697 1-18
+web/src/components/overview/StatsGrid.tsx
+  s_246380a1268afa::t_55d6c4bd583f69 1-17
+web/src/components/overview/WebhookCard.tsx
+  s_246380a1268afa::t_19ecf36df255b1 1-21
+web/src/components/rules/FlowFields.tsx
+  s_246380a1268afa::t_a64b96c7fd9ae6 1-81
+web/src/components/rules/RuleEditor.tsx
+  s_246380a1268afa::t_4257632dbd4358 1-110
+web/src/components/rules/RulesTab.tsx
+  s_246380a1268afa::t_978c9e9143c215 1-61
+web/src/components/rules/RulesTable.tsx
+  s_246380a1268afa::t_6356d8aaedbe22 1-62
+web/src/components/tab-props.ts
+  s_246380a1268afa::t_96f5dd67e668fb 1-7
+web/src/components/test/DryRunTab.tsx
+  s_246380a1268afa::t_4ea5a5814579a3 1-71
+web/src/components/test/Transcript.tsx
+  s_246380a1268afa::t_358d877ca68bcf 1-15
+web/src/components/ui/Card.tsx
+  s_246380a1268afa::t_09ab32616218f9 1-18
+web/src/components/ui/Field.tsx
+  s_246380a1268afa::t_9176023d9ae8c1 1-93
+web/src/components/ui/Notice.tsx
+  s_246380a1268afa::t_355aeaee005bef 1-16
+web/src/components/ui/Pill.tsx
+  s_246380a1268afa::t_6b1b2aa28487cf 1-14
+web/src/components/ui/Stat.tsx
+  s_246380a1268afa::t_61b831c37eeca8 1-10
+web/src/lib/format.ts
+  s_246380a1268afa::t_fa6556623aef00 1-12
+web/src/main.tsx
+  s_246380a1268afa::t_6e0f6bec379b8e 1-7
+web/src/styles/base.css
+  s_246380a1268afa::t_526bd35f39e7a0 1-35
+web/src/styles/components.css
+  s_246380a1268afa::t_e31fc492b60104 1-260
+web/src/styles/document.css
+  s_246380a1268afa::t_b49e3237d32efc 1-16
+web/src/styles/index.css
+  s_246380a1268afa::t_7501d0cd0efe58 1-4
+web/src/styles/layout.css
+  s_246380a1268afa::t_6f07163a565876 1-94
+web/src/styles/tokens.css
+  s_246380a1268afa::t_207a5d31cb0157 1-44
+web/tsconfig.json
+  s_246380a1268afa::t_aa1a10b50c1a9c 1-16
+wrangler.jsonc
+  s_246380a1268afa::t_2e038e1d903409 8-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7242b4cc2ba3f0451ae4b3228ce35460190e3e35",
+  "prompts": {},
+  "sessions": {
+    "s_246380a1268afa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e14d0ab-cab0-46cc-8f58-f062b7aba45c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Charanjit Singh <charanjitdotsingh@gmail.com>"
+    }
+  }
+}
