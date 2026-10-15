@@ -1,0 +1,49 @@
+.mcp.json
+  s_246380a1268afa::t_169511976fd20a 1-12
+cli/client.ts
+  s_246380a1268afa::t_a632806cca08d2 1-116
+cli/commands.ts
+  s_246380a1268afa::t_1d8208ca80721f 1-176
+cli/mcp-server.ts
+  s_246380a1268afa::t_4b28fee922a2a9 1-23
+cli/mcp.ts
+  s_246380a1268afa::t_939b6c95f425f5 1-13
+cli/opendm.ts
+  s_246380a1268afa::t_977404e4529c7d 1-13
+cli/rule-spec.ts
+  s_246380a1268afa::t_913336c003f58c 1-97
+cli/tools.ts
+  s_246380a1268afa::t_d0774d965d976d 1-206
+e2e/browser.mjs
+  s_246380a1268afa::t_6dbbb6edd54d96 261-270
+e2e/run.mjs
+  s_246380a1268afa::t_f7bd513cda5eaf 5,8-10,234-267
+package.json
+  s_246380a1268afa::t_fc93f342edcc3b 27-29,72-75
+test/cli/commands.test.ts
+  s_246380a1268afa::t_9f15661993b81c 1-81
+test/cli/mcp.test.ts
+  s_246380a1268afa::t_afac5e8030f893 1-56
+test/cli/tools.test.ts
+  s_246380a1268afa::t_03598271f462e9 1-179
+test/support/helpers.ts
+  s_246380a1268afa::t_bee0b718c8c94e 4,201-209
+tsconfig.json
+  s_246380a1268afa::t_30462028915fc5 11-13,15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8143922df13247d2119c25e061f3ff59e78eee91",
+  "prompts": {},
+  "sessions": {
+    "s_246380a1268afa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e14d0ab-cab0-46cc-8f58-f062b7aba45c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Charanjit Singh <charanjitdotsingh@gmail.com>"
+    }
+  }
+}
