@@ -1,0 +1,101 @@
+migrations/0002_channels_variants.sql
+  s_246380a1268afa::t_399bc926dd6eee 1-7
+src/db/accounts.ts
+  s_246380a1268afa::t_7f55ea12ff2f46 3,7,9-10,12-16,20-71,81,104-140
+src/db/app-credentials.ts
+  s_246380a1268afa::t_915707eb54b2e5 1-45
+src/db/conversations.ts
+  s_246380a1268afa::t_43b7eafeec02e9 3,10,25,32,51,60-61,69,83,107-140
+src/db/events.ts
+  s_246380a1268afa::t_9f7dd7cfbd2a75 2,17-18,25,38-39
+src/db/rules.ts
+  s_246380a1268afa::t_ef0e9852f78344 3,17-18,32-33,55-57,81-82,88,97
+src/db/schema.ts
+  s_246380a1268afa::t_0c82cf7db283e0 2-3,5,7-10,13,16,19-33,37-40
+src/db/settings.ts
+  s_246380a1268afa::t_0b24416290c387 14-23
+src/index.ts
+  s_246380a1268afa::t_bcff5c91b459ca 9,16,34-37
+src/routes/admin/account.ts
+  s_246380a1268afa::t_f608a96bf6f179 3,5,7-9,11-17,19,29-34,38-67,69-72,76-79,81-82
+src/routes/admin/index.ts
+  s_246380a1268afa::t_326310ad7ec4a8 3,10,15,43-63
+src/routes/admin/setup.ts
+  s_246380a1268afa::t_de5133517c67ed 1-34
+src/routes/oauth.ts
+  s_246380a1268afa::t_25e6138cff2386 2,5,7-8,19-20,25-27,32
+src/routes/schemas.ts
+  s_246380a1268afa::t_83dfb86c7e577e 4,17-23,42-43,78-79,97-98,101-103,110-130
+src/routes/webhook.ts
+  s_246380a1268afa::t_698a6899f5c6c3 3,5,25-29,44-48
+src/services/account-client.ts
+  s_246380a1268afa::t_c40ef7d3143966 1-80
+src/services/conversation-context.ts
+  s_246380a1268afa::t_0960862ed7e408 2
+src/services/dry-run.ts
+  s_246380a1268afa::t_44d14578d855ee 3,5,7-16,18,22-24,38-39,47,59-80,86-91,96,103
+src/services/facebook-setup.ts
+  s_246380a1268afa::t_c549467fa2cbd8 1-81
+src/services/flow.ts
+  s_246380a1268afa::t_55b26903833153 7-22,46-49,70-78,81-86,91-105,107,109,113-115,146-151,156-164,171-172,226-239,245-246,249,251-253,256-265,268-273,277,281,283,289,294,298,300-302,304,306-310,315,317,321,323-326,328-332,340,343-344
+src/services/follow-timeouts.ts
+  s_246380a1268afa::t_88f9f4a15f7046 2,9,19-20,25-26,29,31
+src/services/graph.ts
+  s_246380a1268afa::t_0213eb9486c2ba 5,11,87,89-95,99,103-104,115,120,134,156,166-194
+src/services/matching.ts
+  s_246380a1268afa::t_476e89a1ae18af 92-94,99-100
+src/services/oauth.ts
+  s_246380a1268afa::t_62413009e2cb70 1-129
+src/services/send-queue.ts
+  s_246380a1268afa::t_8fdd7ddac5e124 4,7,9-10,18-19,22-26,67-68,72-73,76,78,80,87,112-115,139
+src/services/setup-status.ts
+  s_246380a1268afa::t_cc5c23811c2686 1-158
+src/services/status.ts
+  s_246380a1268afa::t_d60f9b8c4b9155 2-3,5,12-23,26,36-40,44-46
+src/services/token-refresh.ts
+  s_246380a1268afa::t_1d6187539e98e4 2,6-7,12-14,17-18,20,28
+src/services/variants.ts
+  s_246380a1268afa::t_5cbdc4d2b819b0 1-60
+src/services/webhook-processor.ts
+  s_246380a1268afa::t_596a939aed6b0d 3-6,9-11,13-14,16,19-21,24-25,27-64,67,70-78,81-85,88-90,95,101,108,112-114,116,119-120,122-139,141-148,150,153-157,160-165,168-169,172,177-189,191-196,198,200-220,222,224,226,229-230,232-240,242,252-260,262-266,268-269
+src/types/api.ts
+  s_246380a1268afa::t_06c0e916450f26 7-13,23-26,48-59,64,68,73-74,76,95-122
+src/types/env.ts
+  s_246380a1268afa::t_9ad313dec8f094 8-11
+src/types/instagram.ts
+  s_246380a1268afa::t_a45c6fb5b49f96 2-4,15-26,35,38,43,47-56
+test/db/schema.test.ts
+  s_246380a1268afa::t_a801d0ac368576 3,9-10,22,26-31
+test/routes/admin.test.ts
+  s_246380a1268afa::t_bd9e6ae35a1b32 3,153-159,178,316
+test/routes/facebook.test.ts
+  s_246380a1268afa::t_a3bd30b094134f 1-213
+test/routes/setup.test.ts
+  s_246380a1268afa::t_5e7e13802049a8 1-416
+test/routes/webhook.test.ts
+  s_246380a1268afa::t_eb83b050c6ea7b 68,166
+test/services/send-queue.test.ts
+  s_246380a1268afa::t_52aefcf404f3ed 26-27
+test/services/variants.test.ts
+  s_246380a1268afa::t_3f823c5a2e187b 1-204
+test/support/helpers.ts
+  s_246380a1268afa::t_cbef3005e7aa76 4,9,20,37,108-115,123-124,132,134,219-288
+wrangler.jsonc
+  s_246380a1268afa::t_aafe57f0238fe2 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "465ba6383e4c6d0dbbfc266477655bae1b3cace3",
+  "prompts": {},
+  "sessions": {
+    "s_246380a1268afa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e14d0ab-cab0-46cc-8f58-f062b7aba45c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Charanjit Singh <charanjitdotsingh@gmail.com>"
+    }
+  }
+}
