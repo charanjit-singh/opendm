@@ -1,0 +1,51 @@
+web/src/App.tsx
+  s_246380a1268afa::t_3ecacc884d71fa 11,16,19,61-62,119-122
+web/src/api.ts
+  s_246380a1268afa::t_953d8d237e8610 2-11,46-59,62-63,78-88
+web/src/components/Header.tsx
+  s_246380a1268afa::t_3891740a250357 12-19
+web/src/components/log/LogTab.tsx
+  s_246380a1268afa::t_74ee6318eedfbe 40,45,52,60,67
+web/src/components/overview/AccountCard.tsx
+  s_246380a1268afa::t_b2f8875d561a94 2,9-12,15-19,22-23,26,30-31,34-51,55-60,62
+web/src/components/overview/OverviewTab.tsx
+  s_246380a1268afa::t_e49c6495032a74 9-14,18-19
+web/src/components/rules/FlowFields.tsx
+  s_246380a1268afa::t_a4337aadbc3c03 2-3,5-6,13-20,23-24,27-28,99-109
+web/src/components/rules/RuleEditor.tsx
+  s_246380a1268afa::t_ea6eece1e742ba 3,7,26-27,39-40,52-53,107-122,125
+web/src/components/rules/RulesTable.tsx
+  s_246380a1268afa::t_4d96ef30ff210c 26,49
+web/src/components/setup/AppCredentialsForm.tsx
+  s_246380a1268afa::t_c86cf07f0c8c4e 1-67
+web/src/components/setup/ConnectPanel.tsx
+  s_246380a1268afa::t_e6a9867fd04485 1-119
+web/src/components/setup/SetupTab.tsx
+  s_246380a1268afa::t_fc26e97a0b1a28 1-143
+web/src/components/setup/StepCard.tsx
+  s_246380a1268afa::t_fb459026ba6696 1-32
+web/src/components/setup/guide.ts
+  s_246380a1268afa::t_03dbf8903351b9 1-44
+web/src/components/test/DryRunTab.tsx
+  s_246380a1268afa::t_aa1c1ffe438a07 3,18-19,25-26,50-70
+web/src/components/ui/Variants.tsx
+  s_246380a1268afa::t_68b6d3c5860dc8 1-48
+web/src/styles/components.css
+  s_246380a1268afa::t_7da9e33f8dbbbe 261-362
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b3f2bd3805d4a6b73103a89faaa0a77c917b493d",
+  "prompts": {},
+  "sessions": {
+    "s_246380a1268afa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e14d0ab-cab0-46cc-8f58-f062b7aba45c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Charanjit Singh <charanjitdotsingh@gmail.com>"
+    }
+  }
+}
