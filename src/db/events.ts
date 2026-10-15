@@ -1,8 +1,8 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
+import type { EventKind, EventRow, EventStatus } from "../types/api";
 import type { Env } from "../types/env";
 
-export type EventKind = "comment" | "dm" | "system" | "auth";
-export type EventStatus = "sent" | "queued" | "skipped" | "error" | "info";
+export type { EventRow };
 
 export interface EventInput {
   kind: EventKind;
@@ -14,11 +14,6 @@ export interface EventInput {
   keyword?: string | null;
   text?: string | null;
   error?: string | null;
-}
-
-export interface EventRow extends Required<EventInput> {
-  id: number;
-  ts: number;
 }
 
 const MAX_TEXT = 1000;

@@ -46,6 +46,10 @@ try {
   const api = async (method, path, body) => { const r = await fetch(BASE + path, { method, headers: { "Content-Type": "application/json", Cookie: cookie }, body: body === undefined ? undefined : JSON.stringify(body) }); return { status: r.status, data: await r.json().catch(() => ({})), headers: r.headers }; };
 
   await step("health endpoint", async () => assert.equal((await api("GET", "/health")).data.ok, true));
+  await step("static assets: dashboard shell at /admin and the privacy page", async () => {
+    assert.match(await (await fetch(`${BASE}/admin`)).text(), /<div id="root">/);
+    assert.match(await (await fetch(`${BASE}/privacy`)).text(), /Privacy policy/);
+  });
   await step("admin API refuses without login", async () => assert.equal((await api("GET", "/api/status")).status, 401));
   await step("login sets a session cookie", async () => { const r = await api("POST", "/api/login", { password: vars.ADMIN_PASSWORD }); assert.equal(r.status, 200); cookie = r.headers.get("set-cookie").split(";")[0]; });
   await step("webhook handshake: right token echoes the challenge, wrong token is 403", async () => {

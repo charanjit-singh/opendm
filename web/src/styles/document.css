@@ -1,0 +1,16 @@
+/* Plain document pages (privacy policy). Shares the dashboard tokens. */
+@import url("./tokens.css");
+@import url("./base.css");
+
+.document {
+  max-width: 42rem;
+  margin: 3rem auto;
+  padding: 0 var(--space-4);
+  line-height: 1.6;
+}
+
+.document footer {
+  margin-top: var(--space-6);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

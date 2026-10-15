@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Open-source, self-hosted alternative to ManyChat-style Instagram comment-to-DM automation, on Cloudflare Workers.",
   "license": "AGPL-3.0-only",
-  "author": "SS Enterprises",
+  "author": "SS Enterprises (https://vibemastery.io)",
   "private": true,
   "type": "module",
   "repository": {
@@ -12,12 +12,17 @@
   },
   "scripts": {
     "dev": "wrangler dev",
+    "dev:web": "vite",
+    "build:web": "vite build",
     "deploy": "wrangler deploy",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p web/tsconfig.json",
+    "pretest": "npm run build:web",
     "test": "vitest run",
     "test:e2e": "node e2e/run.mjs",
     "test:browser": "node e2e/browser.mjs",
-    "test:all": "npm run typecheck && npm run test && npm run test:e2e && npm run test:browser",
+    "test:all": "npm run lint && npm run typecheck && npm run test && npm run test:e2e && npm run test:browser",
+    "lint": "biome check .",
+    "format": "biome check --write .",
     "db:migrate:local": "wrangler d1 migrations apply opendm --local",
     "db:migrate:remote": "wrangler d1 migrations apply opendm --remote"
   },
@@ -59,5 +64,8 @@
     "hono": "^4.13.13",
     "preact": "^11.0.1",
     "zod": "^4.6.7"
+  },
+  "engines": {
+    "node": ">=22.18"
   }
 }

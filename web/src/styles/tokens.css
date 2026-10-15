@@ -1,0 +1,44 @@
+/* Design tokens. Every colour, radius and spacing step used by the dashboard comes from here. */
+:root {
+  --color-bg: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-text: #14171f;
+  --color-text-muted: #5d6676;
+  --color-border: #e3e6ec;
+  --color-brand: #6d4aff;
+  --color-brand-text: #ffffff;
+  --color-success: #12805c;
+  --color-warning: #b25e09;
+  --color-danger: #c0262d;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-pill: 99px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 28px;
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, Menlo, monospace;
+  --font-size-sm: 13px;
+  --font-size-md: 15px;
+  --font-size-lg: 18px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f1115;
+    --color-surface: #181b22;
+    --color-text: #e8eaf0;
+    --color-text-muted: #98a0b1;
+    --color-border: #2a2f3a;
+    --color-brand: #8a6dff;
+    --color-success: #3ccf9a;
+    --color-warning: #f0a24a;
+    --color-danger: #ff6b72;
+  }
+}

@@ -1,6 +1,9 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
-import { type Flow, resolveFlow } from "../services/flow";
+import { resolveFlow } from "../services/flow";
+import type { Rule } from "../types/api";
 import type { Env } from "../types/env";
+
+export type { Rule };
 
 /** What a rule stores. `flow` holds only the overrides the user set; defaults fill the rest when it is read. */
 export interface RuleValues {
@@ -12,14 +15,6 @@ export interface RuleValues {
   public_replies: string[];
   fuzzy: boolean;
   flow: Record<string, unknown>;
-}
-
-export interface Rule extends Omit<RuleValues, "flow"> {
-  id: number;
-  /** The flow with defaults applied. */
-  flow: Flow;
-  /** The overrides as stored, so the editor shows what was actually set. */
-  flow_raw: Record<string, unknown>;
 }
 
 interface RuleRow {

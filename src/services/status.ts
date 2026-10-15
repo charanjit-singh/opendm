@@ -1,6 +1,7 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { getAccount } from "../db/account";
 import { getSetting, isEnabled, SETTING } from "../db/settings";
+import type { Status } from "../types/api";
 import type { Env } from "../types/env";
 import { DEFAULT_FLOW, DEFAULT_PUBLIC_REPLIES } from "./flow";
 import { hourlyLimit, sentLastHour } from "./send-queue";
@@ -8,7 +9,7 @@ import { hourlyLimit, sentLastHour } from "./send-queue";
 const DAY_MS = 86_400_000;
 
 /** Everything the dashboard overview needs in one call. */
-export async function buildStatus(env: Env, origin: string) {
+export async function buildStatus(env: Env, origin: string): Promise<Status> {
   const account = await getAccount(env);
   const [rules, sent24h, steps] = await Promise.all([
     env.DB.prepare("SELECT COUNT(*) AS n FROM rules").first<{ n: number }>(),
@@ -32,9 +33,7 @@ export async function buildStatus(env: Env, origin: string) {
     sent24h: sent24h?.n ?? 0,
     sentLastHour: await sentLastHour(env),
     hourlyLimit: await hourlyLimit(env),
-    conversations: Object.fromEntries(steps.results.map((r) => [r.step, r.n])),
+    conversations: Object.fromEntries(steps.results.map((r) => [r.step, r.n])) as Status["conversations"],
     defaults: { flow: DEFAULT_FLOW, publicReplies: DEFAULT_PUBLIC_REPLIES },
   };
 }
-
-export type Status = Awaited<ReturnType<typeof buildStatus>>;

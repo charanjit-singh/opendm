@@ -109,7 +109,7 @@ try {
     await page.fill("#t-replies", "yes\ndone\nsam@example.com");
     await page.selectOption("#t-following", "yes");
     await page.click("#t-run");
-    await page.locator("#t-chat .bub").first().waitFor();
+    await page.locator("#t-chat .bubble").first().waitFor();
     const text = await page.locator("#t-chat").innerText();
     assert.match(text, /Hey Sam!/);
     assert.match(text, /follow @e2e_shop/);

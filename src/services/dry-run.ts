@@ -2,6 +2,7 @@
 // Replays the real flow on a made-up conversation. Nothing is sent and nothing is stored.
 import { getAccount } from "../db/account";
 import { listRules } from "../db/rules";
+import type { DryRunResult, TranscriptLine } from "../types/api";
 import type { Env } from "../types/env";
 import {
   advance,
@@ -9,7 +10,6 @@ import {
   DEFAULT_PUBLIC_REPLIES,
   pickReply,
   start,
-  type Step,
   timeoutFallback,
   type Vars,
 } from "./flow";
@@ -26,16 +26,6 @@ export interface DryRunInput {
   /** Minutes that pass with no reply at the end (triggers the follow timeout). */
   waitMinutes: number;
 }
-
-export interface TranscriptLine {
-  from: "user" | "bot" | "public" | "system";
-  text: string;
-  note?: string;
-}
-
-export type DryRunResult =
-  | { matched: false; transcript: TranscriptLine[] }
-  | { matched: true; rule: { id: number; name: string }; finalStep: Step; transcript: TranscriptLine[] };
 
 const MAX_REPLIES = 12;
 
