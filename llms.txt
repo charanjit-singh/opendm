@@ -1,0 +1,23 @@
+# OpenDM
+
+> Open-source, self-hosted Instagram and Facebook comment-to-DM automation on Cloudflare Workers + D1. Keyword comments get a private reply, an optional follow/like gate, optional email capture, and a link. AGPL-3.0, by SS Enterprises (https://vibemastery.io).
+
+OpenDM runs in your own Cloudflare account. It has a dashboard, a CLI, and an MCP server (remote at /mcp, and stdio) so AI agents can deploy, onboard and manage flows.
+
+## Start here
+
+- [README](https://github.com/charanjit-singh/opendm/blob/main/README.md): what it is, deploy button, set up with Claude
+- [AGENTS.md](https://github.com/charanjit-singh/opendm/blob/main/AGENTS.md): instructions and the onboarding playbook for AI agents
+- [docs/ai-agents.md](https://github.com/charanjit-singh/opendm/blob/main/docs/ai-agents.md): MCP, CLI, safety rules, limits
+
+## Guides
+
+- [Onboarding](https://github.com/charanjit-singh/opendm/blob/main/docs/onboarding.md): Meta app, tokens, webhooks, troubleshooting
+- [Facebook Pages and Messenger](https://github.com/charanjit-singh/opendm/blob/main/docs/facebook.md)
+- [Message cycling](https://github.com/charanjit-singh/opendm/blob/main/docs/message-cycling.md): several wordings per message
+- [Custom domain](https://github.com/charanjit-singh/opendm/blob/main/docs/custom-domain.md)
+
+## Optional
+
+- [CLAUDE.md](https://github.com/charanjit-singh/opendm/blob/main/CLAUDE.md): Claude Code specifics
+- [CONTRIBUTING.md](https://github.com/charanjit-singh/opendm/blob/main/CONTRIBUTING.md), [SECURITY.md](https://github.com/charanjit-singh/opendm/blob/main/SECURITY.md), [CHANGELOG.md](https://github.com/charanjit-singh/opendm/blob/main/CHANGELOG.md)

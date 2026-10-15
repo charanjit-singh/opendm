@@ -19,7 +19,10 @@ Always dry-run before declaring it done.
 | "send the link right away", "no follow" | `openerFirst: false`, `requireFollow: false` |
 | "collect their email" | `askEmail: "optional"` or `"required"` |
 | "if they ignore the follow ask, send it anyway after 30 minutes" | `followTimeoutMinutes: 30` |
-| "only on this post" | `mediaId: "<instagram media id>"` |
+| "only on this post" | `mediaId: "<media or post id>"` |
+| "on Facebook too" / "just Facebook" | `channel: "both"` / `"facebook"` |
+| "also when they DM me the word" | `dmTrigger: true` |
+| "use different wordings", "rotate the message" | `messages: {openerText: [..], deliverText: [..]}`, `rotation` (`opendm_set_messages`) |
 | "reply to the comment with 'Sent you a DM!'" | `publicReplies: ["Sent you a DM!"]` |
 | custom wording | `openerText`, `followText`, `emailText`, `finalMessage` |
 
@@ -39,7 +42,7 @@ Ask only for what is missing and unguessable (usually the link). Do not invent U
    exists: `following: "no"`, and `waitMinutes` beyond the timeout. Show the user the transcript.
 5. Summarise in two or three lines what the flow does. Mention that non-followers receive the DM in message requests.
 
-Other requests: `opendm_set_enabled` (global switch), `opendm_delete_rule` (confirm first), `opendm_get_log` (what
+Other requests: `opendm_list_leads` (emails), `opendm_list_conversations`, `opendm_set_enabled` (global switch), `opendm_delete_rule` (confirm first), `opendm_get_log` (what
 happened to a comment), `opendm_set_hourly_limit`.
 
 ## Limits to keep in mind

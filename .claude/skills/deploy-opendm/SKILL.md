@@ -41,8 +41,8 @@ openssl rand -hex 32 | tr -d '\n'        | npx wrangler secret put SESSION_SECRE
 openssl rand -hex 16 | tr -d '\n'        | npx wrangler secret put VERIFY_TOKEN
 ```
 
-`INSTAGRAM_APP_SECRET` comes from the user's Meta app (step 4). Until then put a placeholder so the Worker starts, and
-replace it later: `printf 'placeholder' | npx wrangler secret put INSTAGRAM_APP_SECRET`.
+The Meta app ID and secret are not Worker secrets any more: save them with `opendm_set_app_credentials` (step 4/5), stored
+encrypted in D1. Full playbook with who-does-what: `docs/ai-agents.md`; run `/onboard` to follow it.
 
 Tell the user their admin password once and ask them to save it in a password manager. Also remember the `VERIFY_TOKEN`
 value (read it back from your own variable, not from Cloudflare: secrets can't be read).
@@ -55,8 +55,8 @@ Instagram **Professional** account required (Business or Creator).
 
 1. <https://developers.facebook.com/apps> > **Create app** > use case *Other* > type *Business*.
 2. Add the **Instagram** product > **API setup with Instagram login**.
-3. Copy the **Instagram app secret**. Then you run:
-   `printf '%s' '<secret>' | npx wrangler secret put INSTAGRAM_APP_SECRET` (ask them to paste it to you; don't log it).
+3. Copy the **Instagram app ID and secret**. Then you call `opendm_set_app_credentials` (ask them to paste them to you;
+   don't echo the secret). For Facebook Pages add the Messenger and Facebook Login products and save that app's ID and secret too.
 4. **Add account**: add their Instagram account (they accept the tester invite in Instagram: Settings > Apps and
    websites > Tester invites).
 5. **Generate token** for the account with permissions `instagram_business_basic`,
