@@ -1,0 +1,35 @@
+.github/workflows/ci.yml
+  s_246380a1268afa::t_ce0644ca81d9a9 1-28
+.gitignore
+  s_246380a1268afa::t_1b21ba98a85950 8-9
+README.md
+  s_246380a1268afa::t_33d85a6e418238 1-146
+e2e/browser.mjs
+  s_246380a1268afa::t_254f6d34debc6b 1-188
+e2e/mock-graph.mjs
+  s_246380a1268afa::t_ff0cbd07c588e2 1-33
+e2e/run.mjs
+  s_246380a1268afa::t_4eaddc52ff28e7 1-139
+src/index.ts
+  s_246380a1268afa::t_89936958826851 12,42
+src/store.ts
+  s_246380a1268afa::t_348627c0425540 30,32
+src/ui.ts
+  s_246380a1268afa::t_d4c50182a4635d 34,217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8a884abda65641086c9bbfc291fdb3c7c5942b61",
+  "prompts": {},
+  "sessions": {
+    "s_246380a1268afa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e14d0ab-cab0-46cc-8f58-f062b7aba45c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Charanjit Singh <charanjitdotsingh@gmail.com>"
+    }
+  }
+}
