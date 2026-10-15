@@ -1,6 +1,6 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { resolveFlow } from "../services/flow";
-import type { Rule } from "../types/api";
+import type { Channel, Rule } from "../types/api";
 import type { Env } from "../types/env";
 
 export type { Rule };
@@ -14,6 +14,8 @@ export interface RuleValues {
   link: string;
   public_replies: string[];
   fuzzy: boolean;
+  channel: Channel;
+  dm_trigger: boolean;
   flow: Record<string, unknown>;
 }
 
@@ -27,6 +29,8 @@ interface RuleRow {
   public_replies: string;
   flow: string;
   fuzzy: number;
+  channel: Channel;
+  dm_trigger: number;
 }
 
 function parseJson<T>(text: string, fallback: T): T {
@@ -48,7 +52,9 @@ const toRule = (r: RuleRow): Rule => {
     link: r.link,
     public_replies: parseJson<string[]>(r.public_replies, []),
     fuzzy: !!r.fuzzy,
-    flow: resolveFlow(flowRaw),
+    channel: r.channel,
+    dm_trigger: !!r.dm_trigger,
+    flow: resolveFlow(flowRaw, r.channel),
     flow_raw: flowRaw,
   };
 };
@@ -72,12 +78,14 @@ const columns = (v: RuleValues) => [
   JSON.stringify(v.public_replies),
   JSON.stringify(v.flow),
   v.fuzzy ? 1 : 0,
+  v.channel,
+  v.dm_trigger ? 1 : 0,
 ];
 
 export async function createRule(env: Env, values: RuleValues): Promise<number> {
   const now = Date.now();
   const result = await env.DB.prepare(
-    "INSERT INTO rules (name, keywords, media_id, enabled, link, public_replies, flow, fuzzy, created, updated) VALUES (?,?,?,?,?,?,?,?,?,?)",
+    "INSERT INTO rules (name, keywords, media_id, enabled, link, public_replies, flow, fuzzy, channel, dm_trigger, created, updated) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
   )
     .bind(...columns(values), now, now)
     .run();
@@ -86,7 +94,7 @@ export async function createRule(env: Env, values: RuleValues): Promise<number> 
 
 export async function updateRule(env: Env, id: number, values: RuleValues): Promise<void> {
   await env.DB.prepare(
-    "UPDATE rules SET name=?, keywords=?, media_id=?, enabled=?, link=?, public_replies=?, flow=?, fuzzy=?, updated=? WHERE id=?",
+    "UPDATE rules SET name=?, keywords=?, media_id=?, enabled=?, link=?, public_replies=?, flow=?, fuzzy=?, channel=?, dm_trigger=?, updated=? WHERE id=?",
   )
     .bind(...columns(values), Date.now(), id)
     .run();

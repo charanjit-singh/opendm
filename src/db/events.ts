@@ -1,5 +1,5 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
-import type { EventKind, EventRow, EventStatus } from "../types/api";
+import type { EventKind, EventRow, EventStatus, Platform } from "../types/api";
 import type { Env } from "../types/env";
 
 export type { EventRow };
@@ -14,13 +14,15 @@ export interface EventInput {
   keyword?: string | null;
   text?: string | null;
   error?: string | null;
+  variant?: string | null;
+  platform?: Platform | null;
 }
 
 const MAX_TEXT = 1000;
 
 export async function logEvent(env: Env, e: EventInput): Promise<void> {
   await env.DB.prepare(
-    "INSERT INTO events (ts, kind, status, ig_user, username, comment_id, rule_id, keyword, text, error) VALUES (?,?,?,?,?,?,?,?,?,?)",
+    "INSERT INTO events (ts, kind, status, ig_user, username, comment_id, rule_id, keyword, text, error, variant, platform) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
   )
     .bind(
       Date.now(),
@@ -33,6 +35,8 @@ export async function logEvent(env: Env, e: EventInput): Promise<void> {
       e.keyword ?? null,
       e.text?.slice(0, MAX_TEXT) ?? null,
       e.error ?? null,
+      e.variant ?? null,
+      e.platform ?? null,
     )
     .run();
 }

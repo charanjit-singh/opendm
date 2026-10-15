@@ -6,13 +6,14 @@ import { ensureSchema } from "./db/schema";
 import { ApiError } from "./lib/validate";
 import { adminRoutes } from "./routes/admin";
 import { authRoutes } from "./routes/auth";
+import { mcpRoutes } from "./routes/mcp";
 import { oauthRoutes } from "./routes/oauth";
 import { webhookRoutes } from "./routes/webhook";
 import { runCron } from "./services/cron";
 import type { AppEnv } from "./types/app";
 import type { Env } from "./types/env";
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 
 const app = new Hono<AppEnv>();
 
@@ -30,6 +31,10 @@ app.route("/webhook", webhookRoutes);
 app.route("/api", authRoutes);
 app.route("/api", adminRoutes);
 app.route("/admin/oauth", oauthRoutes);
+app.route(
+  "/mcp",
+  mcpRoutes((request, env, ctx) => app.fetch(request, env, ctx as ExecutionContext)),
+);
 
 app.notFound((c) => c.text("Not found", 404));
 app.onError((error, c) => {

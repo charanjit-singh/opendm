@@ -23,7 +23,8 @@ const outbox = () =>
   testEnv.DB.prepare("SELECT * FROM outbox ORDER BY id")
     .all<any>()
     .then((r) => r.results);
-const dm = (text: string, to = "u1") => dispatch(testEnv, { kind: "dm", userId: to, text, ctx: {} });
+const dm = (text: string, to = "u1") =>
+  dispatch(testEnv, { platform: "instagram", kind: "dm", userId: to, text, ctx: {} });
 
 describe("classify (Graph error handling)", () => {
   it.each([

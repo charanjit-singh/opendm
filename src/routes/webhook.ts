@@ -1,6 +1,8 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { Hono } from "hono";
+import { signatureSecrets } from "../db/app-credentials";
 import { logEvent } from "../db/events";
+import { SETTING, setSetting } from "../db/settings";
 import { safeEqual, verifySignature } from "../lib/crypto";
 import { handleWebhook } from "../services/webhook-processor";
 import type { AppEnv } from "../types/app";
@@ -20,9 +22,11 @@ webhookRoutes.get("/", async (c) => {
 
 webhookRoutes.post("/", async (c) => {
   const raw = new Uint8Array(await c.req.arrayBuffer());
-  if (!(await verifySignature(c.env.INSTAGRAM_APP_SECRET, raw, c.req.header("X-Hub-Signature-256") ?? null))) {
-    return c.text("Bad signature", 401);
-  }
+  // The Instagram app and the Facebook app can have different secrets: accept a signature from either.
+  const signature = c.req.header("X-Hub-Signature-256") ?? null;
+  const valid = await anyValid(await signatureSecrets(c.env), raw, signature);
+  if (!valid) return c.text("Bad signature", 401);
+  await setSetting(c.env, SETTING.lastWebhookAt, String(Date.now()));
   let payload: WebhookPayload;
   try {
     payload = JSON.parse(new TextDecoder().decode(raw));
@@ -37,3 +41,8 @@ webhookRoutes.post("/", async (c) => {
   );
   return c.text("EVENT_RECEIVED");
 });
+
+async function anyValid(secrets: string[], raw: Uint8Array, signature: string | null): Promise<boolean> {
+  for (const secret of secrets) if (await verifySignature(secret, raw, signature)) return true;
+  return false;
+}

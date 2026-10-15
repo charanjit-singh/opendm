@@ -1,12 +1,12 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { createExecutionContext, env, waitOnExecutionContext } from "cloudflare:test";
 import { vi } from "vitest";
-import { OpenDmClient } from "../../cli/client.ts";
-import { saveAccount } from "../../src/db/account";
+import { saveAccount, savePage } from "../../src/db/accounts";
 import { createRule } from "../../src/db/rules";
 import { ensureSchema, resetSchemaCache } from "../../src/db/schema";
 import worker from "../../src/index";
 import { sign } from "../../src/lib/crypto";
+import { OpenDmClient } from "../../src/mcp/client.ts";
 import { ruleSchema } from "../../src/routes/schemas";
 import type { Env } from "../../src/types/env";
 
@@ -17,7 +17,7 @@ export const TOKEN = "IGAAtesttoken000000000000000000000000";
 export async function resetDb() {
   resetSchemaCache();
   await ensureSchema(testEnv.DB);
-  for (const t of ["settings", "rules", "conversations", "events", "processed", "sends", "outbox"])
+  for (const t of ["settings", "rules", "conversations", "events", "processed", "sends", "outbox", "variant_counters"])
     await testEnv.DB.exec(`DELETE FROM ${t}`);
 }
 
@@ -34,7 +34,7 @@ export async function postWebhook(payload: unknown, opts: { secret?: string; sig
   const body = JSON.stringify(payload);
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const sig =
-    opts.signature === undefined ? await sign(opts.secret ?? testEnv.INSTAGRAM_APP_SECRET, body) : opts.signature;
+    opts.signature === undefined ? await sign(opts.secret ?? testEnv.INSTAGRAM_APP_SECRET ?? "", body) : opts.signature;
   if (sig) headers["X-Hub-Signature-256"] = sig;
   return request("/webhook", { method: "POST", headers, body });
 }
@@ -105,7 +105,14 @@ export function mockGraph(opts: { following?: boolean | null; name?: string } = 
         token_type: "bearer",
         expires_in: 5184000,
       });
-    if (url.pathname.endsWith("/subscribed_apps")) return Response.json({ success: true });
+    if (url.pathname.endsWith("/subscribed_apps")) {
+      return call.method === "GET"
+        ? Response.json({ data: [{ subscribed_fields: ["comments", "messages"] }] })
+        : Response.json({ success: true });
+    }
+    if (/\/\d+$/.test(url.pathname) && url.searchParams.get("fields")?.includes("first_name")) {
+      return Response.json({ first_name: opts.name?.split(" ")[0] ?? "Sam", name: opts.name ?? "Sam Rivera" });
+    }
     if (/\/\d+$/.test(url.pathname) && url.searchParams.get("fields")?.includes("is_user_follow_business")) {
       return Response.json({
         name: opts.name ?? "Sam Rivera",
@@ -113,6 +120,8 @@ export function mockGraph(opts: { following?: boolean | null; name?: string } = 
         ...(typeof opts.following === "boolean" ? { is_user_follow_business: opts.following } : {}),
       });
     }
+    if (call.method === "GET" && /\/\d+$/.test(url.pathname))
+      return Response.json({ id: url.pathname.split("/").at(-1), name: "Acme Studio", username: "acme_ig" });
     return Response.json({ error: { message: `unmocked ${url.pathname}`, code: 100 } }, { status: 400 });
   });
   const mock: GraphMock = {
@@ -120,9 +129,9 @@ export function mockGraph(opts: { following?: boolean | null; name?: string } = 
     on: (match, handler) => void handlers.push([match, handler]),
     sent: () =>
       calls
-        .filter((c) => c.method === "POST" && /\/(messages|replies)$/.test(c.url.pathname))
+        .filter((c) => c.method === "POST" && /\/(messages|replies|comments)$/.test(c.url.pathname))
         .map((c) =>
-          c.url.pathname.endsWith("/replies")
+          /\/(replies|comments)$/.test(c.url.pathname)
             ? { kind: "public_reply", to: c.url.pathname.split("/").at(-2)!, text: c.body.message }
             : {
                 kind: c.body.recipient.comment_id ? "private_reply" : "dm",
@@ -207,3 +216,73 @@ export function workerClient(token: string = testEnv.ADMIN_PASSWORD) {
   };
   return new OpenDmClient("https://opendm.test", token, viaWorker);
 }
+
+// ---- Facebook ---------------------------------------------------------------------------------------------------
+export const PAGE_ID = "112233445566";
+export const PAGE_TOKEN = "EAAFpagetoken000000000000000000000000";
+
+/** Connects a Facebook Page (optionally with a linked Instagram account for Facebook Login). */
+export const connectPage = (o: { igId?: string; igUsername?: string } = {}) =>
+  savePage(testEnv, {
+    token: PAGE_TOKEN,
+    pageId: PAGE_ID,
+    name: "Acme Studio",
+    igId: o.igId ?? null,
+    igUsername: o.igUsername ?? null,
+  });
+
+/** A Page feed webhook for a new comment (a top-level comment has parent_id = post_id). */
+export const fbCommentEvent = (o: {
+  id?: string;
+  text?: string;
+  from?: string | null;
+  name?: string;
+  post?: string;
+  parent?: string;
+  verb?: string;
+}) => ({
+  object: "page",
+  entry: [
+    {
+      id: PAGE_ID,
+      time: 1_760_000_000,
+      changes: [
+        {
+          field: "feed",
+          value: {
+            item: "comment",
+            verb: o.verb ?? "add",
+            comment_id: o.id ?? "112233445566_998877",
+            post_id: o.post ?? "112233445566_555444",
+            parent_id: o.parent ?? o.post ?? "112233445566_555444",
+            message: o.text ?? "GUIDE",
+            ...(o.from === null ? {} : { from: { id: o.from ?? "5500110022", name: o.name ?? "Sam Rivera" } }),
+          },
+        },
+      ],
+    },
+  ],
+});
+
+/** A Messenger message to the Page. */
+export const fbMessageEvent = (o: { from?: string; text: string; mid?: string; echo?: boolean }) => ({
+  object: "page",
+  entry: [
+    {
+      id: PAGE_ID,
+      time: 1_760_000_100,
+      messaging: [
+        {
+          sender: { id: o.echo ? PAGE_ID : (o.from ?? "5500110022") },
+          recipient: { id: o.echo ? (o.from ?? "5500110022") : PAGE_ID },
+          timestamp: 1_760_000_100_000,
+          message: {
+            mid: o.mid ?? `m_fb_${Math.random().toString(36).slice(2)}`,
+            text: o.text,
+            ...(o.echo ? { is_echo: true } : {}),
+          },
+        },
+      ],
+    },
+  ],
+});

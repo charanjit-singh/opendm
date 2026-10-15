@@ -2,12 +2,13 @@
 // Thin client for the Instagram API with Instagram Login (graph.instagram.com).
 // https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/
 
-import type { Account } from "../db/account";
+import type { Account } from "../db/accounts";
 import { scrub } from "../lib/crypto";
 import type { Env } from "../types/env";
 
 export const GRAPH_VERSION = "v25.0";
 export const DEFAULT_GRAPH = "https://graph.instagram.com";
+export const DEFAULT_FACEBOOK_GRAPH = "https://graph.facebook.com";
 export const DEFAULT_OAUTH = "https://api.instagram.com";
 
 export type ErrorKind = "retry" | "token" | "permission" | "final";
@@ -83,21 +84,24 @@ export interface TokenResponse {
   expires_in: number;
 }
 
-/** Client for the connected account's Instagram token. */
+/** A thin client for one Graph host and one access token. Platform-specific calls live in account-client.ts. */
 export class Graph {
-  constructor(
-    private readonly token: string,
-    private readonly base = DEFAULT_GRAPH,
-  ) {}
+  private readonly token: string;
+  private readonly base: string;
+
+  constructor(token: string, base = DEFAULT_GRAPH) {
+    this.token = token;
+    this.base = base;
+  }
 
   private url = (path: string) => `${trimSlash(this.base)}/${GRAPH_VERSION}${path}`;
 
-  private get<T>(path: string) {
+  get<T = unknown>(path: string) {
     return graphFetch<T>(this.url(path), {}, this.token);
   }
 
-  private post(path: string, body?: unknown) {
-    return graphFetch<unknown>(
+  post<T = unknown>(path: string, body?: unknown) {
+    return graphFetch<T>(
       this.url(path),
       {
         method: "POST",
@@ -108,36 +112,12 @@ export class Graph {
     );
   }
 
-  /** The account behind the token. */
+  /** The Instagram account behind an Instagram Login token. */
   me() {
     return this.get<MeResponse>("/me?fields=user_id,username,account_type");
   }
 
-  /** One private reply per comment, within 7 days of the comment. */
-  privateReply(igId: string, commentId: string, text: string) {
-    return this.post(`/${igId}/messages`, { recipient: { comment_id: commentId }, message: { text } });
-  }
-
-  /** A DM to someone who messaged the account in the last 24 hours. */
-  sendDm(igId: string, userId: string, text: string) {
-    return this.post(`/${igId}/messages`, { recipient: { id: userId }, message: { text } });
-  }
-
-  publicReply(commentId: string, text: string) {
-    return this.post(`/${commentId}/replies`, { message: text });
-  }
-
-  /** Profile of someone who messaged us. */
-  profile(userId: string) {
-    return this.get<ProfileResponse>(`/${userId}?fields=name,username,is_user_follow_business`);
-  }
-
-  /** Subscribes the app to this account's comments + messages webhooks. */
-  subscribe(igId: string) {
-    return this.post(`/${igId}/subscribed_apps?subscribed_fields=comments,messages`);
-  }
-
-  /** Extends a long-lived token by another 60 days (the token must be 24h+ old). */
+  /** Extends an Instagram long-lived token by another 60 days (the token must be 24h+ old). */
   refresh() {
     const query = new URLSearchParams({ grant_type: "ig_refresh_token", access_token: this.token });
     return graphFetch<TokenResponse>(`${trimSlash(this.base)}/refresh_access_token?${query}`, {}, null);
@@ -151,7 +131,7 @@ export interface CodeExchange {
   code: string;
 }
 
-/** OAuth: authorization code -> short-lived token. */
+/** Instagram OAuth: authorization code -> short-lived token. */
 export async function exchangeCode(oauthBase: string, p: CodeExchange) {
   const form = new URLSearchParams({
     client_id: p.clientId,
@@ -173,7 +153,7 @@ export async function exchangeCode(oauthBase: string, p: CodeExchange) {
   return result.ok ? ({ ok: true, data: result.data.data?.[0] ?? result.data } as const) : result;
 }
 
-/** OAuth: short-lived token -> long-lived (60 day) token. */
+/** Instagram: short-lived token -> long-lived (60 day) token. */
 export function exchangeForLongLived(base: string, shortToken: string, clientSecret: string) {
   const query = new URLSearchParams({
     grant_type: "ig_exchange_token",
@@ -183,6 +163,32 @@ export function exchangeForLongLived(base: string, shortToken: string, clientSec
   return graphFetch<TokenResponse>(`${trimSlash(base)}/access_token?${query}`, {}, null);
 }
 
-/** A client for the connected account, honouring the GRAPH_BASE override used by tests. */
-export const graphClientFor = (env: Env, account: Account): Graph =>
-  new Graph(account.token, env.GRAPH_BASE || DEFAULT_GRAPH);
+/** Facebook OAuth: authorization code -> user token. */
+export function facebookExchangeCode(base: string, p: CodeExchange) {
+  const query = new URLSearchParams({
+    client_id: p.clientId,
+    client_secret: p.clientSecret,
+    redirect_uri: p.redirectUri,
+    code: p.code,
+  });
+  return graphFetch<{ access_token: string; expires_in?: number }>(
+    `${trimSlash(base)}/${GRAPH_VERSION}/oauth/access_token?${query}`,
+    {},
+    null,
+  );
+}
+
+/** Facebook: user token -> long-lived user token (Page tokens made from it do not expire). */
+export function facebookLongLived(base: string, appId: string, appSecret: string, userToken: string) {
+  const query = new URLSearchParams({
+    grant_type: "fb_exchange_token",
+    client_id: appId,
+    client_secret: appSecret,
+    fb_exchange_token: userToken,
+  });
+  return graphFetch<{ access_token: string; expires_in?: number }>(
+    `${trimSlash(base)}/${GRAPH_VERSION}/oauth/access_token?${query}`,
+    {},
+    null,
+  );
+}

@@ -65,7 +65,7 @@ describe("POST /webhook signature", () => {
     const res = await request("/webhook", {
       method: "POST",
       body,
-      headers: { "X-Hub-Signature-256": await sign(testEnv.INSTAGRAM_APP_SECRET, body) },
+      headers: { "X-Hub-Signature-256": await sign(testEnv.INSTAGRAM_APP_SECRET ?? "", body) },
     });
     expect(res.status).toBe(400);
   });
@@ -163,7 +163,7 @@ describe("comment -> private reply + public reply", () => {
     expect(g.sent()).toEqual([]);
     expect((await recentEvents(testEnv, 1))[0]).toMatchObject({
       status: "error",
-      error: "no Instagram account connected",
+      error: "no instagram account connected",
     });
   });
 

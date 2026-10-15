@@ -5,7 +5,10 @@ export interface Env {
   ADMIN_PASSWORD: string;
   SESSION_SECRET: string;
   VERIFY_TOKEN: string;
-  INSTAGRAM_APP_SECRET: string;
+  /** Optional: the Meta app secrets can also be entered in the dashboard's setup wizard. */
+  INSTAGRAM_APP_SECRET?: string;
+  FACEBOOK_APP_ID?: string;
+  FACEBOOK_APP_SECRET?: string;
   /** Static assets binding (the dashboard build in dist/client). */
   ASSETS?: Fetcher;
   /** Optional: needed only for the "Connect with Instagram" OAuth button. */

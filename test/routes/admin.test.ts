@@ -1,6 +1,6 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getAccount } from "../../src/db/account";
+import { getAccount } from "../../src/db/accounts";
 import { getSetting } from "../../src/db/settings";
 import { makeToken } from "../../src/lib/crypto";
 import { refreshTokenIfNeeded } from "../../src/services/token-refresh";
@@ -150,7 +150,13 @@ describe("connect an account", () => {
     expect(g.calls[0].auth).toBe(`Bearer ${token}`);
     const raw = await getSetting(testEnv, "ig_token");
     expect(raw).not.toContain("IGAAreal");
-    expect(await getAccount(testEnv)).toMatchObject({ token, igId: IG_ID, username: "shop_account" });
+    expect(await getAccount(testEnv)).toMatchObject({
+      token,
+      accountId: IG_ID,
+      ownerId: IG_ID,
+      mode: "instagram_login",
+      username: "shop_account",
+    });
     expect(JSON.stringify((await api(cookie, "GET", "/api/status")).data)).not.toContain("IGAAreal");
   });
   it("shows Instagram's complaint for a bad token and stores nothing", async () => {
@@ -169,7 +175,7 @@ describe("connect an account", () => {
     const { cookie } = await login();
     await connect();
     const g = mockGraph();
-    expect((await api(cookie, "POST", "/api/subscribe", {})).data).toEqual({ subscribed: true });
+    expect((await api(cookie, "POST", "/api/subscribe", {})).data).toEqual({ subscribed: true, platform: "instagram" });
     expect(g.calls[0].url.search).toContain("subscribed_fields=comments,messages");
     await api(cookie, "POST", "/api/disconnect", {});
     expect(await getAccount(testEnv)).toBeNull();
@@ -307,7 +313,7 @@ describe("OAuth with Instagram Login", () => {
     expect(exchange.url.origin).toBe("https://oauth.test");
     expect(String(exchange.body)).toContain("code=AQDcode");
     expect(String(exchange.body)).not.toContain("%23_");
-    expect(await getAccount(testEnv)).toMatchObject({ token: "IGAAlong-token-0123456789abcdefgh", igId: IG_ID });
+    expect(await getAccount(testEnv)).toMatchObject({ token: "IGAAlong-token-0123456789abcdefgh", accountId: IG_ID });
     expect(Number(await getSetting(testEnv, "token_expires"))).toBeGreaterThan(Date.now() + 59 * 86_400_000);
   });
   it("callback refuses a bad state", async () => {

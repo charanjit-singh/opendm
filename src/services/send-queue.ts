@@ -1,11 +1,13 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
 // Every outgoing Graph call goes through here: a rolling per-hour cap (Meta throttles accounts that send in bursts),
 // an outbox in D1 for anything over the cap or hit by a transient error, and backoff retries driven by the cron.
-import { getAccount } from "../db/account";
+import { type Account, getAccount } from "../db/accounts";
 import { logEvent } from "../db/events";
 import { getNumberSetting, SETTING, setSetting } from "../db/settings";
+import type { Platform } from "../types/api";
 import type { Env } from "../types/env";
-import { type GraphResult, graphClientFor } from "./graph";
+import { clientFor } from "./account-client";
+import type { GraphResult } from "./graph";
 
 /** What the event log should say about a job. */
 export interface LogContext {
@@ -13,12 +15,15 @@ export interface LogContext {
   keyword?: string | null;
   rule_id?: number | null;
   ig_user?: string | null;
+  /** Which wording was sent, e.g. "openerText#2/3". */
+  variant?: string | null;
 }
 
-export type Job =
-  | { kind: "private_reply"; commentId: string; text: string; ctx: LogContext }
-  | { kind: "dm"; userId: string; text: string; ctx: LogContext }
-  | { kind: "public_reply"; commentId: string; text: string; ctx: LogContext };
+export type Job = { platform: Platform; ctx: LogContext; text: string } & (
+  | { kind: "private_reply"; commentId: string }
+  | { kind: "dm"; userId: string }
+  | { kind: "public_reply"; commentId: string }
+);
 
 export type SendOutcome = "sent" | "queued" | "error";
 
@@ -59,29 +64,27 @@ const describeJob = (job: Job) => {
     rule_id: job.ctx.rule_id,
     comment_id: job.kind === "dm" ? null : job.commentId,
     text: label + job.text,
+    variant: job.ctx.variant ?? null,
+    platform: job.platform,
   };
 };
 
-function callGraph(
-  env: Env,
-  job: Job,
-  account: NonNullable<Awaited<ReturnType<typeof getAccount>>>,
-): Promise<GraphResult> {
-  const graph = graphClientFor(env, account);
+function callGraph(env: Env, job: Job, account: Account): Promise<GraphResult> {
+  const client = clientFor(env, account);
   switch (job.kind) {
     case "private_reply":
-      return graph.privateReply(account.igId, job.commentId, job.text);
+      return client.privateReply(job.commentId, job.text);
     case "dm":
-      return graph.sendDm(account.igId, job.userId, job.text);
+      return client.dm(job.userId, job.text);
     case "public_reply":
-      return graph.publicReply(job.commentId, job.text);
+      return client.publicReply(job.commentId, job.text);
   }
 }
 
 /** Runs one job now, or defers it. `attempts` is how many times it has already failed. */
 async function run(env: Env, job: Job, attempts: number): Promise<SendOutcome> {
   const log = describeJob(job);
-  const account = await getAccount(env);
+  const account = await getAccount(env, job.platform);
   if (!account) {
     await logEvent(env, { ...log, status: "error", error: "no Instagram account connected" });
     return "error";
@@ -106,7 +109,10 @@ async function run(env: Env, job: Job, attempts: number): Promise<SendOutcome> {
     await logEvent(env, { ...log, status: "queued", error: `retrying: ${result.error}` });
     return "queued";
   }
-  if (result.kind === "token") await setSetting(env, SETTING.tokenError, `${new Date().toISOString()} ${result.error}`);
+  if (result.kind === "token") {
+    const key = job.platform === "facebook" ? SETTING.fbTokenError : SETTING.tokenError;
+    await setSetting(env, key, `${new Date().toISOString()} ${result.error}`);
+  }
   await logEvent(env, { ...log, status: "error", error: `${result.kind}: ${result.error}` });
   return "error";
 }
@@ -130,7 +136,7 @@ export async function drainOutbox(env: Env, max = 25): Promise<number> {
   for (const row of results) {
     if (!(await isUnderLimit(env))) break;
     await env.DB.prepare("UPDATE outbox SET status = 'sent' WHERE id = ?").bind(row.id).run();
-    await run(env, JSON.parse(row.job) as Job, row.attempts);
+    await run(env, { platform: "instagram", ...JSON.parse(row.job) } as Job, row.attempts);
     ran++;
   }
   return ran;

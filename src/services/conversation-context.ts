@@ -1,5 +1,5 @@
 // Copyright (C) 2026 SS Enterprises. Licensed under the GNU AGPL v3 or later; see LICENSE.
-import type { Account } from "../db/account";
+import type { Account } from "../db/accounts";
 import type { Rule } from "../db/rules";
 import type { Vars } from "./flow";
 

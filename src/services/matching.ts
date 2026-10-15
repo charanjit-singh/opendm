@@ -89,15 +89,15 @@ export const splitKeywords = (s: string | string[]) =>
   (Array.isArray(s) ? s : s.split(/[,\n]/)).map((x) => x.trim()).filter(Boolean);
 
 /** Which rule fires for a comment on a given media: the first enabled rule (post-specific rules first) that matches. */
-export function pickRule<R extends { enabled: boolean; keywords: string[]; media_id: string | null; fuzzy: boolean }>(
-  rules: R[],
-  text: string,
-  mediaId?: string,
-): { rule: R; match: KeywordMatch } | null {
+export function pickRule<
+  R extends { enabled: boolean; keywords: string[]; media_id: string | null; fuzzy: boolean; channel?: string },
+>(rules: R[], text: string, mediaId?: string, platform?: string): { rule: R; match: KeywordMatch } | null {
   const ordered = [...rules].sort((a, b) => Number(!!b.media_id) - Number(!!a.media_id));
   for (const rule of ordered) {
     if (!rule.enabled) continue;
     if (rule.media_id && rule.media_id !== mediaId) continue;
+    if (platform && rule.channel && rule.channel !== "both" && rule.channel !== platform) continue;
+    if (platform && rule.channel && rule.channel !== "both" && rule.channel !== platform) continue;
     const match = matchKeyword(text, rule.keywords, { fuzzy: rule.fuzzy });
     if (match) return { rule, match };
   }

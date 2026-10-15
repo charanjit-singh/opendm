@@ -5,13 +5,22 @@ import type { Env } from "../types/env";
 export const SETTING = {
   enabled: "enabled",
   hourlyLimit: "hourly_limit",
-  lastPublicReply: "last_public_reply",
   igToken: "ig_token",
   igUserId: "ig_user_id",
   igUsername: "ig_username",
   tokenError: "token_error",
   tokenExpires: "token_expires",
   tokenRefreshed: "token_refreshed",
+  /** Facebook Page connection (also used for Instagram through Facebook Login). */
+  fbToken: "fb_token",
+  fbPageId: "fb_page_id",
+  fbPageName: "fb_page_name",
+  fbIgId: "fb_ig_id",
+  fbIgUsername: "fb_ig_username",
+  fbTokenError: "fb_token_error",
+  /** A long-lived Facebook user token kept only while the user picks a Page. */
+  fbUserToken: "fb_user_token",
+  lastWebhookAt: "last_webhook_at",
 } as const;
 
 export async function getSetting(env: Env, key: string): Promise<string | null> {
