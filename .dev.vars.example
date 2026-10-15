@@ -1,0 +1,7 @@
+# Copy to .dev.vars for local development (wrangler dev). The Deploy to Cloudflare button prompts for these.
+ADMIN_PASSWORD=change-me-to-a-long-password
+SESSION_SECRET=generate-with-openssl-rand-hex-32
+VERIFY_TOKEN=any-string-you-choose-for-the-meta-webhook
+INSTAGRAM_APP_SECRET=your-instagram-app-secret
+# Optional: enables the "Connect with Instagram" OAuth button
+# INSTAGRAM_APP_ID=

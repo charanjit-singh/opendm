@@ -1,0 +1,54 @@
+{
+  "name": "opendm",
+  "version": "0.1.0",
+  "description": "Open-source, self-hosted alternative to ManyChat-style Instagram comment-to-DM automation, on Cloudflare Workers.",
+  "license": "AGPL-3.0-only",
+  "author": "SS Enterprises",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charanjit-singh/opendm.git"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "node e2e/run.mjs",
+    "test:browser": "node e2e/browser.mjs",
+    "test:all": "npm run typecheck && npm run test && npm run test:e2e && npm run test:browser",
+    "db:migrate:local": "wrangler d1 migrations apply opendm --local",
+    "db:migrate:remote": "wrangler d1 migrations apply opendm --remote"
+  },
+  "cloudflare": {
+    "label": "OpenDM",
+    "products": [
+      "Workers",
+      "D1"
+    ],
+    "bindings": {
+      "ADMIN_PASSWORD": {
+        "description": "Password for the admin dashboard (/admin). Pick a long one."
+      },
+      "SESSION_SECRET": {
+        "description": "Random string (32+ chars): signs the login cookie and encrypts stored tokens. `openssl rand -hex 32`."
+      },
+      "VERIFY_TOKEN": {
+        "description": "Any string you choose; paste the same value into Meta's webhook 'Verify token' field."
+      },
+      "INSTAGRAM_APP_SECRET": {
+        "description": "Instagram app secret from your Meta app (Instagram Login > API setup). Used to verify webhook signatures."
+      }
+    }
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.4.2",
+    "@cloudflare/workers-types": "^5.20261006.1",
+    "@types/node": "^26.6.5",
+    "playwright-core": "^1.64.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0",
+    "wrangler": "^4.151.0"
+  }
+}
