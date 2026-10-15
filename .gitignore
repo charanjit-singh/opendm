@@ -5,4 +5,5 @@ node_modules/
 *.log
 dist/
 test-results/
-e2e/.tmp/
+e2e/.tmp*/
+wrangler.test.jsonc

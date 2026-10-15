@@ -27,9 +27,9 @@ export interface Account {
   username: string | null;
 }
 
-/** The connected account: the token pasted/OAuth'd in the dashboard (sealed in D1), else the IG_ACCESS_TOKEN secret. */
+/** The connected account: the token pasted or OAuth'd in the dashboard (sealed in D1) and its Instagram account id. */
 export async function getAccount(env: Env): Promise<Account | null> {
-  const token = (await unseal(env.SESSION_SECRET, await getSetting(env, "ig_token"))) ?? env.IG_ACCESS_TOKEN ?? null;
+  const token = await unseal(env.SESSION_SECRET, await getSetting(env, "ig_token"));
   const igId = await getSetting(env, "ig_user_id");
   if (!token || !igId) return null;
   return { token, igId, username: await getSetting(env, "ig_username") };

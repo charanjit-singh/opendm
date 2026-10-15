@@ -31,7 +31,7 @@ nav button{background:none;border:0;padding:8px 14px;border-radius:8px;color:var
 nav button.on{background:var(--card);color:var(--ink);box-shadow:0 0 0 1px var(--line);font-weight:600}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
 .card h2{font-size:16px;margin:0 0 10px}
-.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
 .stat b{display:block;font-size:26px}.stat span{color:var(--mute);font-size:13px}
 label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
 input[type=text],input[type=password],input[type=number],textarea,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
@@ -214,6 +214,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
 
   document.querySelectorAll("#tabs button").forEach(function (b) {
     b.addEventListener("click", function () {
+      $("flash").hidden = true;
       document.querySelectorAll("#tabs button").forEach(function (x) { x.classList.toggle("on", x === b); });
       ["overview","rules","test","log"].forEach(function (t) { $("tab-" + t).hidden = t !== b.dataset.tab; });
       if (b.dataset.tab === "log") loadLog();

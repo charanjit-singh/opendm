@@ -8,8 +8,6 @@ export interface Env {
   INSTAGRAM_APP_SECRET: string;
   /** Optional: needed only for the "Connect with Instagram" OAuth button. */
   INSTAGRAM_APP_ID?: string;
-  /** Optional: a long-lived Instagram user token, instead of pasting it in the dashboard. */
-  IG_ACCESS_TOKEN?: string;
   /** Overrides for tests / the local e2e mock (default https://graph.instagram.com). */
   GRAPH_BASE?: string;
   OAUTH_BASE?: string;

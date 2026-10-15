@@ -9,7 +9,7 @@ import { adminPage, privacyPage } from "./ui";
 import { logEvent } from "./store";
 import type { Env } from "./types";
 
-export const VERSION = "0.1.0";
+const VERSION = "0.1.0";
 const html = (body: string, status = 200) => new Response(body, { status, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Frame-Options": "DENY", "Referrer-Policy": "no-referrer" } });
 
 /** Meta calls this once when you save the webhook in the app dashboard. */
@@ -39,6 +39,7 @@ export default {
     const url = new URL(req.url);
     const { pathname: path } = url;
     if (path === "/health") return json({ ok: true, name: "opendm", version: VERSION });
+    if (path === "/favicon.ico") return new Response(null, { status: 204 });
     if (path === "/privacy") return html(privacyPage());
     if (path === "/") return Response.redirect(`${url.origin}/admin`, 302);
     try {
