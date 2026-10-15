@@ -1,0 +1,47 @@
+.dev.vars.example
+  s_246380a1268afa::t_10b0d8f3043377 1,5-6,8-10
+CHANGELOG.md
+  s_246380a1268afa::t_1464e4cc90d8f5 9-25
+README.md
+  s_246380a1268afa::t_cf912bb252444d 8,10,19,23,55-58,64,66,88,91-95,97,100-102,105-106,109-110,113-116,118,120-124,127-129,138-140,147,153,156-158,160,170,178,192,229,238-247,300,302,344
+package.json
+  s_246380a1268afa::t_5b5e4081d04711 3
+src/services/dry-run.ts
+  s_246380a1268afa::t_f492879105943f 11,75-76,88,98
+src/services/flow.ts
+  s_246380a1268afa::t_e928bf9ec630e2 75,106-109,266,277,311,327,329
+src/services/follow-timeouts.ts
+  s_246380a1268afa::t_4600c72130fec7 8,26-32
+src/services/status.ts
+  s_246380a1268afa::t_46bcc595747c22 7,52
+src/services/token-refresh.ts
+  s_246380a1268afa::t_da30f03fe508e3 14
+src/services/webhook-processor.ts
+  s_246380a1268afa::t_1f5b67321b8744 16,113-114,181,220
+src/types/api.ts
+  s_246380a1268afa::t_65e494b43a308c 83
+test/services/variants.test.ts
+  s_246380a1268afa::t_7c1a50ef746b3e 22-25
+web/src/App.tsx
+  s_246380a1268afa::t_158fb881285cfa 47-53,66,81
+web/src/components/rules/RuleEditor.tsx
+  s_246380a1268afa::t_ecb85d64070897 14,45-56,66,69,80
+web/src/components/rules/RulesTab.tsx
+  s_246380a1268afa::t_20a1187953254a 50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "542f1c9cef3b068216f0334f54233f2f89716aec",
+  "prompts": {},
+  "sessions": {
+    "s_246380a1268afa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e14d0ab-cab0-46cc-8f58-f062b7aba45c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Charanjit Singh <charanjitdotsingh@gmail.com>"
+    }
+  }
+}
