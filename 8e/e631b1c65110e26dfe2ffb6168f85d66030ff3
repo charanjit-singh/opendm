@@ -1,0 +1,49 @@
+.claude/commands/add-custom-domain.md
+  s_246380a1268afa::t_829da23d2401c2 1-13
+.claude/commands/add-rule.md
+  s_246380a1268afa::t_ed297a9b9b1d62 1-7
+.claude/commands/connect-instagram.md
+  s_246380a1268afa::t_fdf0aee023e5de 1-13
+.claude/commands/deploy.md
+  s_246380a1268afa::t_3bd01588a25821 1-12
+.claude/commands/new-feature.md
+  s_246380a1268afa::t_13c8a863294c19 1-11
+.claude/commands/onboard.md
+  s_246380a1268afa::t_f61b9deed05b76 1-12
+.claude/skills/deploy-opendm/SKILL.md
+  s_246380a1268afa::t_216d6709cce93c 44-45,58-59
+.claude/skills/manage-flows/SKILL.md
+  s_246380a1268afa::t_0a4e56722c5f98 22-25,45
+AGENTS.md
+  s_246380a1268afa::t_c3319441bd7fe7 1-66
+CLAUDE.md
+  s_246380a1268afa::t_58f6fac7e3f9af 6-10,32-35,37,59-60
+docs/ai-agents.md
+  s_246380a1268afa::t_b9b933e1459e36 1-125
+docs/custom-domain.md
+  s_246380a1268afa::t_55041cbd994fa1 1-63
+docs/facebook.md
+  s_246380a1268afa::t_cc7a712fac459c 1-58
+docs/message-cycling.md
+  s_246380a1268afa::t_9a38f10470b286 1-46
+docs/onboarding.md
+  s_246380a1268afa::t_cf16126bb23c9b 1-122
+llms.txt
+  s_246380a1268afa::t_d3d9e07cca1a55 1-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8ee631b1c65110e26dfe2ffb6168f85d66030ff3",
+  "prompts": {},
+  "sessions": {
+    "s_246380a1268afa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e14d0ab-cab0-46cc-8f58-f062b7aba45c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Charanjit Singh <charanjitdotsingh@gmail.com>"
+    }
+  }
+}
